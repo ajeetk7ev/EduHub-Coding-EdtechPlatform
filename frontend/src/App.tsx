@@ -1,8 +1,6 @@
 
 
 import './App.css'
-import Footer from './components/footer/Footer'
-import Navbar from './components/header/Navbar'
 import Home from './pages/Home'
 import { Routes, Route } from 'react-router-dom'
 import Signup from './pages/Signup'

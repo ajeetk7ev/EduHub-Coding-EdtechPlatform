@@ -1,2 +1,2 @@
-export const API_URL = "http://localhost:3000/api"
+export const API_URL = "https://eduhub-coding-edtechplatform-2.onrender.com/api"
 

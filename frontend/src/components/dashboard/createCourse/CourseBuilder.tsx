@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
     Upload,
     PlusCircle,
-    Video,
     FileText,
     Heading,
     Loader2,
@@ -48,7 +47,7 @@ export default function CourseBuilder({ courseId }: CourseBuilderProps) {
         try {
             const res = await axios.post(`${API_URL}/section`, {
                 title: sectionTitle,
-                courseId: "68b1c84dad4ceb4cff8ce7c9",
+                courseId: courseId,
             }, {
                 headers: {
                     "Authorization": `Bearer ${token}`
