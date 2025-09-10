@@ -25,6 +25,7 @@ import OpenRoute from './components/auth/OpenRoute'
 import PrivateRoute from './components/auth/PrivateRoute'
 import AboutPage from './pages/AboutUs'
 import ContactUsPage from './pages/ContactUs'
+import AllCourses from './pages/AllCourses'
 
 function App() {
 
@@ -51,6 +52,7 @@ function App() {
         <Route path='/login' element={<OpenRoute><Login /></OpenRoute>} />
         <Route path='/forgot-password' element={<OpenRoute><ForgotPassword /></OpenRoute>} />
         <Route path='/reset-password/:id' element={<OpenRoute><UpdatePassword /></OpenRoute>} />
+        <Route path='/courses' element={<AllCourses/>} />
         <Route path='/course/:id' element={<CourseDetails/>} />
         <Route path='/course/:id/content' element={<CourseView/>} />
         <Route path='*' element={<NotFoundPage/>} />

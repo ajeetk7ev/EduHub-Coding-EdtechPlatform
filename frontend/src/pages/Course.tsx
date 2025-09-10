@@ -17,6 +17,7 @@ import axios from "axios";
 import { API_URL } from "@/constants/api";
 import toast from "react-hot-toast";
 import type { Section, Subsection } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 function CourseDetails() {
   const { id } = useParams();
@@ -24,11 +25,12 @@ function CourseDetails() {
   const { courseDetails: course, totalCourseDuration, fetchCourseDetails } =
     useCoursesStore();
   const [buyCourseLoading, setBuyCourseLoading] = useState(false);
+  const navigate = useNavigate();
 
 
   const handleBuyCourse = async () => {
     if (!token) {
-      toast.error("Login First")
+      navigate("/login")
       return;
     }
     setBuyCourseLoading(true);
@@ -43,6 +45,7 @@ function CourseDetails() {
 
       if (res.data.success) {
         toast.success(res.data.message || "Enrolled in course Successfully")
+        navigate("/dashboard/enrolled-courses")
       }
     } catch (error: any) {
       console.log("Error in buying course", error);

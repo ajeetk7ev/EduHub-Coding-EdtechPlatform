@@ -4,11 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import Navbar from "@/components/header/Navbar";
+import Footer from "@/components/footer/Footer";
 
 export default function ContactUsPage() {
   return (
+    <>
+     <Navbar />
     <div className="bg-gray-700 text-gray-200 min-h-screen">
-      <Navbar />
+     
 
       {/* Hero Section */}
       <section className="max-w-4xl mx-auto text-center px-6 py-20">
@@ -88,5 +91,7 @@ export default function ContactUsPage() {
         </div>
       </section>
     </div>
+    <Footer/>
+    </>
   );
 }

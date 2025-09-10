@@ -1,21 +1,28 @@
 import { useEffect, useState, type JSX } from "react";
 import { Link } from "react-router-dom";
-import { Users, Star, Globe, Code, Layers, Database, ArrowRight } from "lucide-react";
+import {
+  Users,
+  Star,
+  Globe,
+  Code,
+  Layers,
+  Database,
+  ArrowRight,
+} from "lucide-react";
 import { useCategoryStore } from "@/store/categoryStore";
 import { useCoursesStore } from "@/store/courseStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "../ui/button";
 
 const categoryIcons: Record<string, JSX.Element> = {
   "Web Development": <Globe className="w-6 h-6" />,
   "Programming Languages": <Code className="w-6 h-6" />,
-  "DSA": <Layers className="w-6 h-6" />,
-  "Databases": <Database className="w-6 h-6" />,
+  DSA: <Layers className="w-6 h-6" />,
+  Databases: <Database className="w-6 h-6" />,
 };
 
 function FeaturedCourses() {
-  const { categories, fetchAllCategories } = useCategoryStore();
-  const { courses, fetchAllCourses } = useCoursesStore();
+  const { categories, fetchAllCategories, categoryLoading } = useCategoryStore();
+  const { courses, fetchAllCourses, courseLoading } = useCoursesStore();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // Fetch data when component mounts
@@ -49,27 +56,63 @@ function FeaturedCourses() {
         </p>
 
         {/* Category Tabs */}
+
+
         <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {categories.map((cat) => (
-            <button
-              key={cat._id}
-              onClick={() => setActiveCategory(cat._id)}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-full text-sm font-semibold transition-colors duration-300 ${activeCategory === cat._id
-                ? "bg-blue-600 text-white shadow-lg"
-                : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"
-                }`}
-            >
-              {categoryIcons[cat.name] || <Globe className="w-6 h-6" />}
-              <span>{cat.name}</span>
-            </button>
-          ))}
+          {categoryLoading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="px-6 py-3 rounded-full bg-gray-800 animate-pulse w-32 h-10"
+              />
+            ))
+          ) :
+            categories.map((cat) => (
+              <button
+                key={cat._id}
+                onClick={() => setActiveCategory(cat._id)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat._id
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105"
+                  : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+                  }`}
+              >
+                {categoryIcons[cat.name] || <Globe className="w-5 h-5" />}
+                {cat.name}
+                <span className="text-xs text-gray-400">
+                  ({courses.filter((c) => c.category?._id === cat._id).length})
+                </span>
+              </button>
+            ))}
+
+
         </div>
 
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {activeCourses.length > 0 ? (
+          {courseLoading ? (
+            // Skeleton loaders
+            Array.from({ length: 6 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="bg-gray-800 rounded-2xl shadow-md animate-pulse overflow-hidden"
+              >
+                <div className="w-full h-44 bg-gray-700" />
+                <div className="p-6 space-y-4">
+                  <div className="h-4 bg-gray-700 rounded w-3/4" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-gray-700" />
+                    <div className="h-3 bg-gray-700 rounded w-1/2" />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="h-3 bg-gray-700 rounded w-1/4" />
+                    <div className="h-3 bg-gray-700 rounded w-1/4" />
+                  </div>
+                  <div className="h-8 bg-gray-700 rounded w-full" />
+                </div>
+              </div>
+            ))
+          ) : activeCourses.length > 0 ? (
             activeCourses.map((course) => {
-              console.log("PRINTING RATING AND REVIEWS ", course.ratingAndReviews);
               const avgRating =
                 course.ratingAndReviews?.length > 0
                   ? (
@@ -99,22 +142,21 @@ function FeaturedCourses() {
 
                   {/* Body */}
                   <div className="p-6">
-                    {/* Title + Price */}
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold leading-tight line-clamp-2">
-                         {course.courseName.length > 25
-                                                ? course.courseName.substring(0, 35) + "..."
-                                                : course.courseName}
-                      </h3>
-
-                    </div>
+                    <h3 className="text-lg font-semibold leading-tight line-clamp-2 mb-2">
+                      {course.courseName.length > 25
+                        ? course.courseName.substring(0, 35) + "..."
+                        : course.courseName}
+                    </h3>
 
                     {/* Instructor */}
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3 mb-3">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
                           <AvatarImage
-                            src={course.instructor.image || "https://github.com/leerob.png"}
+                            src={
+                              course.instructor.image ||
+                             `https://ui-avatars.com/api/?name=${course?.instructor?.firstname} ${course.instructor.lastname} &background=random`
+                            }
                             alt={`${course.instructor.firstname}`}
                           />
                           <AvatarFallback>
@@ -127,7 +169,6 @@ function FeaturedCourses() {
                           {course.instructor.lastname}
                         </span>
                       </div>
-
                       <div className="text-lg font-bold text-blue-400">
                         ₹{course.price}
                       </div>
@@ -165,15 +206,16 @@ function FeaturedCourses() {
       </div>
 
       <div className="w-full flex justify-center mt-6">
-        <Button
-          className="px-6 py-5 rounded-2xl text-lg font-semibold 
+        <Link
+          to={'/courses'}
+          className="px-6 py-2 rounded-2xl text-lg font-semibold 
                    bg-gradient-to-r from-indigo-600 to-purple-600 
                    text-white shadow-lg hover:from-indigo-700 hover:to-purple-700 
                    transition-all duration-300 ease-in-out flex items-center gap-2"
         >
           View All Courses
           <ArrowRight className="w-5 h-5" />
-        </Button>
+        </Link>
       </div>
     </section>
   );

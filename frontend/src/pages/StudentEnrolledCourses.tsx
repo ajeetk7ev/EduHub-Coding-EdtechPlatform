@@ -12,29 +12,27 @@ import { Link } from "react-router-dom";
 const StudentEnrolledCourses = () => {
     const { user } = useAuthStore();
     console.log("USER IS ", user);
-    const { courses: allCourses } = useCoursesStore();
+    const { courses: allCourses, fetchAllCourses } = useCoursesStore();
     const [courses, setCourses] = useState<CourseSummary[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const filterUserCourse = async () => {
+
+    // Filter enrolled courses whenever courses or user changes
+    useEffect(() => {
         if (!user) return;
-
-        setLoading(true);
-
 
         const enrolledCourses = allCourses.filter((course) =>
             course.studentsEnrolled.includes(user._id)
         );
 
-        setTimeout(() => {
-            setCourses(enrolledCourses);
-            setLoading(false);
-        }, 500);
-    };
-
-    useEffect(() => {
-        filterUserCourse();
+        setCourses(enrolledCourses);
+        setLoading(false);
     }, [allCourses, user]);
+
+    // Fetch courses on mount
+    useEffect(() => {
+        fetchAllCourses();
+    }, [fetchAllCourses]);
 
     return (
         <div className="min-h-screen bg-gray-900 py-10 px-6">

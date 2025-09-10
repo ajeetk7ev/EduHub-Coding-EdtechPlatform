@@ -26,7 +26,7 @@ function Dashboard() {
 
       {/* Main content area */}
       <div
-        className="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 sm:pb-8 transition-all duration-300"
+        className="flex-1 overflow-y-auto  sm:p-8 pb-20 sm:pb-8 transition-all duration-300"
         style={{
           marginLeft: isDesktop ? (collapsed ? '5rem' : '16rem') : '0',
         }}

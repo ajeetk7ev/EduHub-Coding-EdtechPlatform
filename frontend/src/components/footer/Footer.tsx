@@ -25,22 +25,22 @@ const Footer = () => {
           <h3 className="text-lg font-semibold text-gray-200 mb-4">Courses</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/courses/full-stack" className="hover:text-blue-400 transition-colors duration-300">
+              <Link to="/courses" className="hover:text-blue-400 transition-colors duration-300">
                 Full Stack Development
               </Link>
             </li>
             <li>
-              <Link to="/courses/data-science" className="hover:text-blue-400 transition-colors duration-300">
+              <Link to="/courses" className="hover:text-blue-400 transition-colors duration-300">
                 Data Science
               </Link>
             </li>
             <li>
-              <Link to="/courses/frontend" className="hover:text-blue-400 transition-colors duration-300">
+              <Link to="/courses" className="hover:text-blue-400 transition-colors duration-300">
                 Frontend Mastery
               </Link>
             </li>
             <li>
-              <Link to="/courses/backend" className="hover:text-blue-400 transition-colors duration-300">
+              <Link to="/courses" className="hover:text-blue-400 transition-colors duration-300">
                 Backend Engineering
               </Link>
             </li>

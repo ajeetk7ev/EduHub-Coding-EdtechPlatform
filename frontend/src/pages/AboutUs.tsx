@@ -1,11 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Globe, Target } from "lucide-react";
 import Navbar from "@/components/header/Navbar";
+import Footer from "@/components/footer/Footer";
+import { Link } from "react-router-dom";
 
 export default function AboutPage() {
   return (
+   <>
     <div className="bg-gray-950 text-gray-200 min-h-screen">
       <Navbar />
 
@@ -97,10 +99,13 @@ export default function AboutPage() {
         <p className="text-gray-400 mb-6">
           Join thousands of learners who are upgrading their skills with us.
         </p>
-        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-lg px-8 py-6">
+        <Link to={'/courses'} className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-lg px-6 py-2">
           Explore Courses
-        </Button>
+        </Link>
       </section>
     </div>
+
+    <Footer/>
+   </>
   );
 }

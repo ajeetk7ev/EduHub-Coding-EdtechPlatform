@@ -4,10 +4,7 @@ import {
   BookOpen,
   PlusSquare,
   GraduationCap,
-  BarChart,
   Settings,
-  HelpCircle,
-  Bell,
   Home,
 } from "lucide-react";
 import { ACCOUNT_TYPE } from "@/constants/role";
@@ -56,17 +53,11 @@ export const sidebarLinks = [
     type: ACCOUNT_TYPE.INSTRUCTOR,
     icon: PlusSquare,
   },
-  {
-    id: 6,
-    name: "Analytics",
-    path: "/dashboard/analytics",
-    type: ACCOUNT_TYPE.INSTRUCTOR,
-    icon: BarChart,
-  },
+
 
   // Student Only
   {
-    id: 7,
+    id: 6,
     name: "Enrolled Courses",
     path: "/dashboard/enrolled-courses",
     type: ACCOUNT_TYPE.STUDENT,
@@ -74,17 +65,4 @@ export const sidebarLinks = [
   },
   
 
-  // Common helpful stuff
-  {
-    id: 10,
-    name: "Notifications",
-    path: "/dashboard/notifications",
-    icon: Bell,
-  },
-  {
-    id: 11,
-    name: "Help & Support",
-    path: "/dashboard/help",
-    icon: HelpCircle,
-  },
 ];

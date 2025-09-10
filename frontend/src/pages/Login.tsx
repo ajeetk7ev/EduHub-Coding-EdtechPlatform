@@ -28,7 +28,9 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 font-sans antialiased">
+
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-sans antialiased relative">
+    
       <div className="bg-gray-800 text-white rounded-3xl shadow-2xl p-8 max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01] border-2 border-transparent hover:border-blue-500">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
