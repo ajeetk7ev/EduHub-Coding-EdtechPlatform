@@ -4,25 +4,41 @@ import { LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { sidebarLinks } from "@/data/dashboard-link";
 import { useDashboardCollapsedStore } from "@/store/dashboardCollapsedStore";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Sidebar = () => {
   const { logout, user } = useAuthStore();
   const { collapsed, setCollapsed } = useDashboardCollapsedStore();
   const navigate = useNavigate();
- 
+
 
   const handleLogout = () => {
-      logout();
-      navigate('/');
+    logout();
+    navigate('/');
   }
+
+  // ✅ Auto update collapsed based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setCollapsed(true); // collapse for tablets/small screens
+      } else {
+        setCollapsed(false); // expand for desktops
+      }
+    };
+
+    handleResize(); // run once on mount
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [setCollapsed]);
 
   return (
     <>
       {/* Desktop / tablet sidebar */}
       <aside
-        className={`hidden sm:flex flex-col ${
-          collapsed ? "w-20" : "w-64"
-        } h-screen bg-[#0d1b2a] border-r border-blue-900 transition-all duration-300`}
+        className={`hidden sm:flex flex-col ${collapsed ? "w-20" : "w-64"
+          } h-screen bg-[#0d1b2a] border-r border-blue-900 transition-all duration-300`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-5 border-b border-blue-800">

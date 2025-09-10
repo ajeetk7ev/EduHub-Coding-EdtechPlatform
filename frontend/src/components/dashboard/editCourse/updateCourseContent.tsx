@@ -220,7 +220,7 @@ export default function UpdateCourseContentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-gradient-to-r from-[#1f2937] to-[#111827] h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl bg-gradient-to-r from-[#1f2937] to-[#111827] text-white h-[90vh] flex flex-col">
         {/* Sticky header */}
         <DialogHeader className="shrink-0 border-b text-white border-gray-200 pb-2">
           <DialogTitle>Edit Course Content</DialogTitle>
@@ -239,7 +239,7 @@ export default function UpdateCourseContentDialog({
             <Button
               onClick={addSection}
               disabled={addLoading}
-              className="bg-yellow-500 text-black"
+              className="bg-yellow-500 hover:bg-yellow-600 text-black"
             >
               {addLoading ? (
                 <>
@@ -442,7 +442,7 @@ function SubsectionForm({
       <Button
         onClick={handleSubmit}
         disabled={loading}
-        className="bg-green-600 w-full"
+        className="bg-green-600 hover:bg-green-700 w-full"
       >
         {loading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
