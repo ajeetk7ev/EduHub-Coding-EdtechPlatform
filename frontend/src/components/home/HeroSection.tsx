@@ -4,6 +4,7 @@ import { Typewriter } from "react-simple-typewriter";
 import { ArrowRight } from "lucide-react";
 import bgImage from '@/assets/homepage/hero-image.png'
 
+
 const HeroSection = () => {
     return (
         <section className="bg-[#0d1b2a] text-gray-200 py-20">
