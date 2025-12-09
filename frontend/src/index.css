@@ -1,6 +1,28 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
+@keyframes topDownInfinite {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-20px);
+        opacity: 0.7;
+    }
+}
+
+.animate-top-down {
+    animation: topDownInfinite 3s ease-in-out infinite;
+}
+
+
+
 @keyframes marquee {
   0% {
     transform: translateX(0%);
