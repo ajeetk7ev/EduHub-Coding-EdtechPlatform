@@ -1,5 +1,5 @@
 import { useEffect, useState, type JSX } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Users, Star, Globe, Code, Layers, Database } from "lucide-react";
 import { useCoursesStore } from "@/store/courseStore";
 import { useCategoryStore } from "@/store/categoryStore";
@@ -12,22 +12,51 @@ const categoryIcons: Record<string, JSX.Element> = {
     "Programming Languages": <Code className="w-8 h-8 text-green-400" />,
     "DSA": <Layers className="w-8 h-8 text-purple-400" />,
     "Databases": <Database className="w-8 h-8 text-amber-400" />,
+    "DevOps": <Layers className="w-8 h-8 text-green-400" />,
 };
 
 function AllCourses() {
-    const { courses, fetchAllCourses, courseLoading } = useCoursesStore();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { courses, fetchAllCourses, fetchCoursesByCategory, courseLoading } = useCoursesStore();
     const { categories, fetchAllCategories, categoryLoading } = useCategoryStore();
-    const [activeCategory, setActiveCategory] = useState<string>("all");
+    
+    // Initialize activeCategory from URL or default to "all"
+    const categoryParam = searchParams.get("category");
+    const [activeCategory, setActiveCategory] = useState<string>(categoryParam || "all");
+
+    // Read category from URL query parameter when it changes (e.g., browser back/forward)
+    useEffect(() => {
+        const categoryFromUrl = searchParams.get("category");
+        const newCategory = categoryFromUrl || "all";
+        if (newCategory !== activeCategory) {
+            setActiveCategory(newCategory);
+        }
+    }, [searchParams, activeCategory]);
 
     useEffect(() => {
-        fetchAllCourses();
         fetchAllCategories();
-    }, [fetchAllCourses, fetchAllCategories]);
+    }, [fetchAllCategories]);
 
-    const filteredCourses =
-        activeCategory === "all"
-            ? courses
-            : courses.filter((c) => c.category?._id === activeCategory);
+    // Fetch courses when activeCategory changes
+    useEffect(() => {
+        if (activeCategory === "all") {
+            fetchAllCourses();
+        } else {
+            fetchCoursesByCategory(activeCategory);
+        }
+    }, [activeCategory, fetchAllCourses, fetchCoursesByCategory]);
+
+    // Handle category change and update URL
+    const handleCategoryChange = (categoryId: string) => {
+        setActiveCategory(categoryId);
+        if (categoryId === "all") {
+            setSearchParams({}, { replace: true });
+        } else {
+            setSearchParams({ category: categoryId }, { replace: true });
+        }
+    };
+
+    const filteredCourses = courses;
 
     return (
         <>
@@ -57,23 +86,33 @@ function AllCourses() {
                                     className="px-6 py-3 rounded-full bg-gray-800 animate-pulse w-32 h-10"
                                 />
                             ))
-                        ) :
-                            categories.map((cat) => (
+                        ) : (
+                            <>
                                 <button
-                                    key={cat._id}
-                                    onClick={() => setActiveCategory(cat._id)}
-                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat._id
+                                    onClick={() => handleCategoryChange("all")}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === "all"
                                         ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105"
                                         : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
                                         }`}
                                 >
-                                    {categoryIcons[cat.name] || <Globe className="w-5 h-5" />}
-                                    {cat.name}
-                                    <span className="text-xs text-gray-400">
-                                        ({courses.filter((c) => c.category?._id === cat._id).length})
-                                    </span>
+                                    <Globe className="w-5 h-5" />
+                                    All Courses
                                 </button>
-                            ))}
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat._id}
+                                        onClick={() => handleCategoryChange(cat._id)}
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${activeCategory === cat._id
+                                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg scale-105"
+                                            : "bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+                                            }`}
+                                    >
+                                        {categoryIcons[cat.name] || <Globe className="w-5 h-5" />}
+                                        {cat.name}
+                                    </button>
+                                ))}
+                            </>
+                        )}
 
 
                     </div>
@@ -179,7 +218,7 @@ function AllCourses() {
 
                                             {/* CTA */}
                                             <Link
-                                                to={`/course/${course._id}`}
+                                                to={`/course/${course._id}${activeCategory !== "all" ? `?category=${activeCategory}` : ""}`}
                                                 className="block w-full text-center px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-purple-700 hover:to-pink-600 text-white text-sm transition-transform transform hover:scale-105"
                                             >
                                                 View Course

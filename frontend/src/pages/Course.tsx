@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useCoursesStore } from "@/store/courseStore";
-import { Star, Users, PlayCircle, Loader2 } from "lucide-react";
+import { Star, Users, PlayCircle, Loader2, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/header/Navbar";
 import { useAuthStore } from "@/store/authStore";
@@ -17,15 +11,18 @@ import axios from "axios";
 import { API_URL } from "@/constants/api";
 import toast from "react-hot-toast";
 import type { Section, Subsection } from "@/types";
-import { useNavigate } from "react-router-dom";
 
 function CourseDetails() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { token } = useAuthStore();
   const { courseDetails: course, totalCourseDuration, fetchCourseDetails } =
     useCoursesStore();
   const [buyCourseLoading, setBuyCourseLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Get category from URL to preserve it when going back
+  const categoryParam = searchParams.get("category");
 
 
   const handleBuyCourse = async () => {
@@ -105,6 +102,21 @@ function CourseDetails() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10 py-12 px-6">
         {/* LEFT SIDE */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Back Button */}
+          <Button
+            onClick={() => {
+              const backUrl = categoryParam 
+                ? `/courses?category=${categoryParam}` 
+                : "/courses";
+              navigate(backUrl);
+            }}
+            variant="ghost"
+            className="flex items-center gap-2 text-gray-400 hover:text-white mb-4"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Courses
+          </Button>
+
           {/* Title */}
           <h1 className="text-4xl font-extrabold leading-tight">
             {course.courseName}
@@ -169,21 +181,18 @@ function CourseDetails() {
               {totalCourseDuration}
             </h2>
 
-            <Accordion
-              type="multiple"
-              className="w-full border border-gray-800 rounded-xl divide-y divide-gray-800"
-            >
+            <div className="w-full border border-gray-800 rounded-xl divide-y divide-gray-800 bg-gray-900">
               {course.courseContent.map((section: Section) => (
-                <AccordionItem key={section._id} value={section._id}>
-                  <AccordionTrigger className="px-4 py-3 bg-gray-900 hover:bg-gray-800 text-left">
-                    <span className="font-semibold">{section.title}</span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 py-4 bg-gray-950">
+                <div key={section._id} className="border-b border-gray-800 last:border-b-0">
+                  <div className="px-4 py-4 bg-gray-900 hover:bg-gray-800 transition-colors">
+                    <h3 className="font-semibold text-lg text-white">{section.title}</h3>
+                  </div>
+                  <div className="px-6 py-4 bg-gray-950">
                     <ul className="space-y-3">
                       {section.subSections.map((sub: Subsection) => (
                         <li
                           key={sub._id}
-                          className="flex justify-between items-center text-gray-400 hover:text-white transition"
+                          className="flex justify-between items-center text-gray-400 hover:text-white transition py-2"
                         >
                           <div className="flex items-center gap-2">
                             <PlayCircle className="w-4 h-4 text-blue-500" />
@@ -195,10 +204,10 @@ function CourseDetails() {
                         </li>
                       ))}
                     </ul>
-                  </AccordionContent>
-                </AccordionItem>
+                  </div>
+                </div>
               ))}
-            </Accordion>
+            </div>
           </div>
         </div>
 

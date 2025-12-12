@@ -379,6 +379,56 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
     }
 }
 
+// Get Courses by Category
+export const getCoursesByCategory = async (req: Request, res: Response) => {
+    try {
+        const { categoryId } = req.params;
+
+        if (!categoryId) {
+            return res.status(400).json({
+                success: false,
+                message: "Category ID is required",
+            });
+        }
+
+        // Find all published courses for the given category
+        const courses = await Course.find(
+            {
+                category: categoryId,
+                status: "Published",
+            },
+            {
+                courseName: true,
+                price: true,
+                thumbnail: true,
+                instructor: true,
+                ratingAndReviews: true,
+                studentsEnrolled: true,
+                category: true,
+                language: true,
+            }
+        )
+            .populate({ path: "instructor", select: "firstname lastname image" })
+            .populate({ path: "category", select: "name description" })
+            .populate({ path: "ratingAndReviews", select: "rating review" })
+            .sort({ createdAt: -1 })
+            .exec();
+
+        return res.status(200).json({
+            success: true,
+            courses,
+            count: courses.length,
+        });
+    } catch (error: any) {
+        console.error("Error in getCoursesByCategory:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch courses by category",
+            error: error.message,
+        });
+    }
+}
+
 
 
 

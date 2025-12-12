@@ -12,6 +12,7 @@ interface CoursesState {
   courseDetailsLoading: boolean;
 
   fetchAllCourses: () => Promise<void>;
+  fetchCoursesByCategory: (categoryId: string) => Promise<void>;
   fetchCourseDetails: (id: string) => Promise<void>;
 }
 
@@ -32,6 +33,22 @@ export const useCoursesStore = create<CoursesState>((set) => ({
       }
     } catch (error) {
       console.error("Error fetching all courses:", error);
+    } finally {
+      set({ courseLoading: false });
+    }
+  },
+
+  // Fetch courses by category
+  fetchCoursesByCategory: async (categoryId: string) => {
+    set({ courseLoading: true });
+    try {
+      const res = await axios.get(`${API_URL}/course/category/${categoryId}`);
+      if (res.data.success) {
+        set({ courses: res.data.courses });
+      }
+    } catch (error) {
+      console.error("Error fetching courses by category:", error);
+      set({ courses: [] });
     } finally {
       set({ courseLoading: false });
     }
