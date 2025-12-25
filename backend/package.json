@@ -18,16 +18,13 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
+    "ioredis": "^5.8.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
     "nodemailer": "^7.0.5",
     "stripe": "^18.5.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.2.2",
-    "@types/node": "^20.4.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/crypto-js": "^4.2.2",
@@ -35,6 +32,10 @@
     "@types/express": "^5.0.3",
     "@types/express-fileupload": "^1.5.1",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/nodemailer": "^7.0.1"
+    "@types/node": "^20.4.2",
+    "@types/nodemailer": "^7.0.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.2.2"
   }
 }
