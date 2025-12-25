@@ -297,73 +297,90 @@ export const getAllCourses = async (req: Request, res: Response) => {
 
 // Get One Single Course Details
 export const getCourseFullDetails = async (req: Request, res: Response) => {
-    try {
-        const { id: courseId } = req.params;
+  try {
+    const { id: courseId } = req.params;
 
-
-        if (!courseId) {
-            return res.status(400).json({
-                success: false,
-                message: "CourseId is required"
-            })
-        }
-
-        // ✅ Find course and populate deeply
-        const courseDetails = await Course.findById(courseId)
-            .populate({
-                path: "instructor",
-                select: "firstname lastname image",
-            })
-            .populate("category", "name description")
-            .populate({
-                path: "courseContent",
-                select: "title",
-                populate: {
-                    path: "subSections",
-                    select: "title description timeDuration videoUrl",
-                },
-            })
-            .populate("ratingAndReviews")
-
-
-        if (!courseDetails) {
-            return res.status(404).json({
-                success: false,
-                message: `Could not find course with id: ${courseId}`,
-            });
-        }
-
-
-        // ✅ Compute total duration safely
-        let totalDurationInSeconds = 0;
-        for (const content of courseDetails.courseContent as any[]) {
-            if (content && content.subSections.length > 0) {
-                for (const subSection of content.subSections) {
-                    const timeDurationInSeconds = parseInt(subSection.timeDuration);
-                    totalDurationInSeconds += isNaN(timeDurationInSeconds) ? 0 : timeDurationInSeconds;
-                }
-            }
-        }
-
-
-        const totalDuration = convertSecondsToDuration(totalDurationInSeconds);
-
-        return res.status(200).json({
-            success: true,
-            message: "Course details fetched successfully",
-            data: {
-                course: courseDetails,
-                totalDuration,
-            },
-        });
-    } catch (error: any) {
-        console.error("getCourseDetails error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error",
-        });
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "CourseId is required",
+      });
     }
-}
+
+    const cacheKey = `course:full:${courseId}`;
+
+    // 🔥 1. Redis check
+    const cachedCourse = await redis.get(cacheKey);
+    if (cachedCourse) {
+      return res.status(200).json({
+        success: true,
+        source: "cache",
+        ...JSON.parse(cachedCourse),
+      });
+    }
+
+    // 2. Fetch from DB
+    const courseDetails = await Course.findById(courseId)
+      .populate({
+        path: "instructor",
+        select: "firstname lastname image",
+      })
+      .populate("category", "name description")
+      .populate({
+        path: "courseContent",
+        select: "title",
+        populate: {
+          path: "subSections",
+          select: "title description timeDuration videoUrl",
+        },
+      })
+      .populate("ratingAndReviews");
+
+    if (!courseDetails) {
+      return res.status(404).json({
+        success: false,
+        message: `Could not find course with id: ${courseId}`,
+      });
+    }
+
+    // 3. Compute duration
+    let totalDurationInSeconds = 0;
+    for (const content of courseDetails.courseContent as any[]) {
+      for (const subSection of content.subSections || []) {
+        const t = parseInt(subSection.timeDuration);
+        totalDurationInSeconds += isNaN(t) ? 0 : t;
+      }
+    }
+
+    const totalDuration = convertSecondsToDuration(totalDurationInSeconds);
+
+    const responsePayload = {
+      success: true,
+      message: "Course details fetched successfully",
+      data: {
+        course: courseDetails,
+        totalDuration,
+      },
+    };
+
+    // 🔥 4. Save to Redis
+    await redis.set(
+      cacheKey,
+      JSON.stringify(responsePayload),
+      "EX",
+      60 * 20 // 20 min
+    );
+
+    return res.status(200).json(responsePayload);
+  } catch (error: any) {
+    console.error("getCourseDetails error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 
 // Get a list of Course for a given Instructor
 export const getInstructorCourses = async (req: Request, res: Response) => {
