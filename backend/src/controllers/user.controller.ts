@@ -3,11 +3,11 @@ import User from "../models/User";
 import bcrypt from "bcryptjs";
 import uploadImageToCloudinary from "../utils/imageUpload";
 
-
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user._id;
-    const { firstname, lastname, about, contactNo, gender, password, dob } = req.body;
+    const { firstname, lastname, about, contactNo, gender, password, dob } =
+      req.body;
 
     if (!password) {
       return res.status(400).json({
@@ -45,7 +45,11 @@ export const updateUser = async (req: Request, res: Response) => {
     // Handle image upload if provided
     if (req.files && (req.files as any).image) {
       const file = (req.files as any).image as any;
-      const uploadResponse = await uploadImageToCloudinary(file, "user_images", 800);
+      const uploadResponse = await uploadImageToCloudinary(
+        file,
+        "user_images",
+        800
+      );
       updateData.image = uploadResponse.secure_url;
     }
 
@@ -89,4 +93,3 @@ export const updateUser = async (req: Request, res: Response) => {
     });
   }
 };
-

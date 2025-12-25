@@ -5,6 +5,8 @@ import uploadImageToCloudinary from "../utils/imageUpload";
 import Course from "../models/Course";
 import convertSecondsToDuration from "../utils/secToDuration";
 import redis from "../config/redis";
+import Section from "../models/Section";
+import SubSection from "../models/SubSection";
 
 //Create course
 export const createCourse = async (req: Request, res: Response) => {
@@ -495,6 +497,87 @@ export const getCoursesByCategory = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch courses by category",
+      error: error.message,
+    });
+  }
+};
+
+
+export const deleteCourse = async (req: Request, res: Response) => {
+  try {
+    const { id: courseId } = req.params;
+
+    if (!courseId) {
+      return res.status(400).json({
+        success: false,
+        message: "Course ID is required",
+      });
+    }
+
+    // ✅ Find course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const instructorId = course.instructor;
+    const categoryId = course.category;
+    const courseContent = course.courseContent || [];
+
+    // Unenroll students from the course
+    const studentsEnrolled = course.studentsEnrolled
+    for (const studentId of studentsEnrolled) {
+      await User.findByIdAndUpdate(studentId, {
+        $pull: { courses: courseId },
+      })
+    }
+
+    // ================= DELETE COURSE CONTENT =================
+    for (const sectionId of courseContent) {
+      const section = await Section.findById(sectionId);
+
+      if (section?.subSections?.length) {
+        // 🔥 Delete all subsections
+        await SubSection.deleteMany({
+          _id: { $in: section.subSections },
+        });
+      }
+
+      // 🔥 Delete section
+      await Section.findByIdAndDelete(sectionId);
+    }
+
+    // ================= REMOVE COURSE REFERENCES =================
+    // Remove course from Instructor
+    await User.findByIdAndUpdate(instructorId, {
+      $pull: { courses: courseId },
+    });
+
+    // Remove course from Category
+    await Category.findByIdAndUpdate(categoryId, {
+      $pull: { courses: courseId },
+    });
+
+    // ================= DELETE COURSE =================
+    await Course.findByIdAndDelete(courseId);
+
+    // ================= REDIS CACHE INVALIDATION =================
+    await redis.del("courses:all");
+    await redis.del(`course:full:${courseId}`);
+    await redis.del(`courses:category:${categoryId}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Course and all related content deleted successfully",
+    });
+  } catch (error: any) {
+    console.error("Delete course error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete course",
       error: error.message,
     });
   }
