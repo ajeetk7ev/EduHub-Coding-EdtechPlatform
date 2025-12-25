@@ -4,6 +4,7 @@ import Category from "../models/Category"
 import uploadImageToCloudinary from "../utils/imageUpload"
 import Course from "../models/Course"
 import convertSecondsToDuration from "../utils/secToDuration"
+import redis from "../config/redis"
 
 
 
@@ -236,39 +237,63 @@ export const editCourse = async (req: Request, res: Response) => {
 };
 
 // Get Course List
+// Get Course List
 export const getAllCourses = async (req: Request, res: Response) => {
-    try {
-        const allCourses = await Course.find(
-            { status: "Published" },
-            {
-                courseName: true,
-                price: true,
-                thumbnail: true,
-                instructor: true,
-                ratingAndReviews: true,
-                studentsEnrolled: true,
-                category: true,
-                language: true
-            }
-        )
-            .populate({ path: "instructor", select: "firstname lastname image " })
-            .populate({ path: "category", select: "name description" })
-            .populate({ path: "ratingAndReviews", select: "rating review" })
-            .exec()
+  try {
+    const cacheKey = "courses:all";
 
-        return res.status(200).json({
-            success: true,
-            courses: allCourses,
-        })
-    } catch (error: any) {
-        console.log("Error in getAllCourse ", error);
-        return res.status(404).json({
-            success: false,
-            message: `Can't Fetch Course Data`,
-            error: error.message,
-        })
+    // 🔥 1. Check cache
+    const cachedCourses = await redis.get(cacheKey);
+    if (cachedCourses) {
+      return res.status(200).json({
+        success: true,
+        source: "cache",
+        courses: JSON.parse(cachedCourses),
+      });
     }
-}
+
+    // 2. Fetch from DB
+    const allCourses = await Course.find(
+      { status: "Published" },
+      {
+        courseName: true,
+        price: true,
+        thumbnail: true,
+        instructor: true,
+        ratingAndReviews: true,
+        studentsEnrolled: true,
+        category: true,
+        language: true,
+      }
+    )
+      .populate({ path: "instructor", select: "firstname lastname image" })
+      .populate({ path: "category", select: "name description" })
+      .populate({ path: "ratingAndReviews", select: "rating review" })
+      .exec();
+
+    // 🔥 3. Save to Redis
+    await redis.set(
+      cacheKey,
+      JSON.stringify(allCourses),
+      "EX",
+      60 * 10 // 10 min
+    );
+
+    return res.status(200).json({
+      success: true,
+      source: "db",
+      courses: allCourses,
+    });
+  } catch (error: any) {
+    console.log("Error in getAllCourse ", error);
+    return res.status(404).json({
+      success: false,
+      message: `Can't Fetch Course Data`,
+      error: error.message,
+    });
+  }
+};
+
 
 // Get One Single Course Details
 export const getCourseFullDetails = async (req: Request, res: Response) => {
@@ -378,6 +403,7 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
         })
     }
 }
+
 
 // Get Courses by Category
 export const getCoursesByCategory = async (req: Request, res: Response) => {
