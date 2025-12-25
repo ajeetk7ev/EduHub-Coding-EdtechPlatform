@@ -26,6 +26,7 @@ import PrivateRoute from './components/auth/PrivateRoute'
 import AboutPage from './pages/AboutUs'
 import ContactUsPage from './pages/ContactUs'
 import AllCourses from './pages/AllCourses'
+import ColdStartNotice from './components/header/ColdStartNotice'
 
 function App() {
 
@@ -43,6 +44,8 @@ function App() {
   }, []);
   return (
     <div>
+
+      <ColdStartNotice/>
 
       <Routes>
         <Route path='/' element={<Home />} />
