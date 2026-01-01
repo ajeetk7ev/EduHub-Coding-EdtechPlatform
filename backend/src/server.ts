@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Response } from 'express'
 import fileUpload from 'express-fileupload'
 import cors from 'cors'
 import dotenv from 'dotenv';
@@ -22,6 +22,13 @@ app.use(fileUpload({
 	tempFileDir:"/tmp",
 }))
 
+const PORT = process.env.PORT || 5000;
+
+
+app.get("/health", (_, res:Response) =>{
+      res.send("Server is working fine")
+})
+
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/category", categoryRoutes);
@@ -32,7 +39,7 @@ app.use("/api/rating-review",  ratingAndReviewRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/course", paymentRoutes);
 
-app.listen(3000, async() => {
+app.listen(PORT, async() => {
     await dbConnect();
-    console.log("App is running at port 3000")
+    console.log(`Server is running at port ${PORT}`)
 })
