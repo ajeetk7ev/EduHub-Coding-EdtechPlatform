@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import * as SibApiV3Sdk from "@getbrevo/brevo";
 
 interface SendEmailOptions {
   to: string;
@@ -8,26 +8,30 @@ interface SendEmailOptions {
 
 export const sendEmail = async ({ to, subject, html }: SendEmailOptions) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST!,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS, 
-      },
-    });
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    const mailOptions = {
-      from: 'EduHub | Learning Platform',
-      to,
-      subject,
-      html,
+    // Configure API key
+    apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY!);
+
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = html;
+    sendSmtpEmail.sender = {
+      name: "EduHub",
+      email: process.env.BREVO_MAIL_FROM!
     };
+    sendSmtpEmail.to = [{ email: to }];
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent: " + info.response);
+    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log("Email sent successfully using Brevo:", response.body);
     return true;
-  } catch (error) {
-    console.error("Error sending email:", error);
+  } catch (error: any) {
+    console.error("Error sending email via Brevo:", error);
+    if (error.response && error.response.body) {
+      console.error(JSON.stringify(error.response.body, null, 2));
+    }
     return false;
   }
 };
+

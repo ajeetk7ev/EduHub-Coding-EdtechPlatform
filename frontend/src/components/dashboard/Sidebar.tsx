@@ -5,6 +5,8 @@ import { sidebarLinks } from "@/data/dashboard-link";
 import { useDashboardCollapsedStore } from "@/store/dashboardCollapsedStore";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const Sidebar = () => {
   const { logout, user } = useAuthStore();
@@ -37,26 +39,32 @@ const Sidebar = () => {
     <>
       {/* Desktop / tablet sidebar */}
       <aside
-        className={`hidden sm:flex flex-col ${collapsed ? "w-20" : "w-64"
-          } h-screen bg-[#0d1b2a] border-r border-blue-900 transition-all duration-300`}
+        className={cn(
+          "hidden sm:flex flex-col h-[calc(100vh-2rem)] my-4 ml-4 rounded-[2.5rem] bg-[#0d1b2a]/40 border border-white/5 backdrop-blur-3xl transition-all duration-500 shadow-2xl overflow-hidden sticky top-4",
+          collapsed ? "w-24" : "w-64"
+        )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-5 border-b border-blue-800">
+        <div className="flex items-center justify-between px-6 py-8">
           {!collapsed && (
-            <h1 className="text-2xl font-bold text-white">
-              Edu<span className="text-blue-400">Hub</span>
-            </h1>
+            <motion.h1
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-2xl font-black text-white tracking-tighter"
+            >
+              Edu<span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Hub</span>
+            </motion.h1>
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1 rounded-md text-gray-400 hover:bg-blue-800 hover:text-white transition"
+            className="p-2 rounded-2xl bg-white/5 text-gray-400 hover:bg-blue-600 hover:text-white transition-all duration-300"
           >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
           </button>
         </div>
 
         {/* Links */}
-        <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
           {sidebarLinks.map((link) => {
             if (link.type && link.type !== user?.role) return null;
             return (
@@ -72,13 +80,16 @@ const Sidebar = () => {
         </nav>
 
         {/* Logout */}
-        <div className="p-4 border-t border-blue-900">
+        <div className="p-4 mt-auto">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+            className={cn(
+              "group w-full flex items-center gap-3 px-4 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 active:scale-[0.98]",
+              collapsed ? "justify-center px-0" : ""
+            )}
           >
-            <LogOut size={18} />
-            {!collapsed && <span>Logout</span>}
+            <LogOut size={20} className="group-hover:rotate-12 transition-transform" />
+            {!collapsed && <span className="font-bold uppercase tracking-widest text-xs">Logout</span>}
           </button>
         </div>
       </aside>

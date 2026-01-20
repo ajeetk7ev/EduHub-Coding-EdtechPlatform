@@ -1,10 +1,12 @@
 import { Router, Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenRouter } from "@openrouter/sdk";
 
 const router = Router();
 
 // Load API Key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const openrouter = new OpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY!,
+});
 
 // Generate description, tags, and what-you-will-learn
 router.post("/generate-course-content", async (req: Request, res: Response) => {
@@ -13,11 +15,8 @@ router.post("/generate-course-content", async (req: Request, res: Response) => {
     console.log("COURSE TITLE IS ", courseTitle);
 
     if (!courseTitle) {
-      return res.status(400).json({success:false, message: "Course title is required" });
+      return res.status(400).json({ success: false, message: "Course title is required" });
     }
-
-    // Select model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Prompt
     const prompt = `
@@ -35,8 +34,30 @@ router.post("/generate-course-content", async (req: Request, res: Response) => {
       }
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const response = await openrouter.chat.send({
+      model: "meta-llama/llama-3.3-70b-instruct:free",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const content = response.choices[0]?.message?.content;
+    let text = "";
+
+    if (typeof content === "string") {
+      text = content;
+    } else if (Array.isArray(content)) {
+      text = content
+        .map((item: any) => {
+          if (typeof item === "string") return item;
+          if ("text" in item) return item.text;
+          return "";
+        })
+        .join("");
+    }
 
     // ✅ Clean response (remove markdown fences if present)
     const cleaned = text.replace(/```json|```/g, "").trim();
@@ -45,6 +66,7 @@ router.post("/generate-course-content", async (req: Request, res: Response) => {
     try {
       data = JSON.parse(cleaned);
     } catch (err) {
+      console.error("Parse Error:", err, "Raw Text:", text);
       return res.status(500).json({
         error: "Failed to parse AI response",
         raw: text,

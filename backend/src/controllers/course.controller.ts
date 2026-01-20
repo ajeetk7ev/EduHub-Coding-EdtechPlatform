@@ -40,20 +40,32 @@ export const createCourse = async (req: Request, res: Response) => {
     // console.log("==============================");
 
     // Get thumbnail image from request files
-    const thumbnail = (req as any).files.thumbnailImage;
+    const thumbnail = (req as any).files?.thumbnailImage;
     console.log("thumbnail: ", thumbnail);
+
+    // Parse stringified arrays if they come from form-data
+    try {
+      if (typeof whatYouWillLearn === "string") whatYouWillLearn = JSON.parse(whatYouWillLearn);
+      if (typeof tags === "string") tags = JSON.parse(tags);
+      if (typeof instructions === "string") instructions = JSON.parse(instructions);
+    } catch (e) {
+      console.error("Error parsing course data arrays", e);
+    }
 
     // Check if any of the required fields are missing
     if (
       !courseName ||
       !courseDescription ||
-      !whatYouWillLearn.length ||
+      !whatYouWillLearn ||
+      (Array.isArray(whatYouWillLearn) && whatYouWillLearn.length === 0) ||
       !language ||
       !price ||
-      !tags.length ||
+      !tags ||
+      (Array.isArray(tags) && tags.length === 0) ||
       !thumbnail ||
       !category ||
-      !instructions.length
+      !instructions ||
+      (Array.isArray(instructions) && instructions.length === 0)
     ) {
       return res.status(400).json({
         success: false,
@@ -250,55 +262,81 @@ export const editCourse = async (req: Request, res: Response) => {
 // Get Course List
 export const getAllCourses = async (req: Request, res: Response) => {
   try {
-    const cacheKey = "courses:all";
+    const {
+      page = 1,
+      limit = 9,
+      search = "",
+      category = "all",
+      minPrice,
+      maxPrice,
+      sort = "newest"
+    } = req.query;
 
-    // 🔥 1. Check cache
-    const cachedCourses = await redis.get(cacheKey);
-    if (cachedCourses) {
-      return res.status(200).json({
-        success: true,
-        source: "cache",
-        courses: JSON.parse(cachedCourses),
-      });
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Build query object
+    const query: any = { status: "Published" };
+
+    if (search) {
+      query.$or = [
+        { courseName: { $regex: search, $options: "i" } },
+        { courseDescription: { $regex: search, $options: "i" } }
+      ];
     }
 
-    // 2. Fetch from DB
-    const allCourses = await Course.find(
-      { status: "Published" },
-      {
-        courseName: true,
-        price: true,
-        thumbnail: true,
-        instructor: true,
-        ratingAndReviews: true,
-        studentsEnrolled: true,
-        category: true,
-        language: true,
-      }
-    )
+    if (category && category !== "all") {
+      query.category = category;
+    }
+
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    // Build sort object
+    let sortObj: any = { createdAt: -1 };
+    if (sort === "oldest") sortObj = { createdAt: 1 };
+    if (sort === "price-low") sortObj = { price: 1 };
+    if (sort === "price-high") sortObj = { price: -1 };
+
+    // Fetch courses with pagination
+    const allCourses = await Course.find(query, {
+      courseName: true,
+      price: true,
+      thumbnail: true,
+      instructor: true,
+      ratingAndReviews: true,
+      studentsEnrolled: true,
+      category: true,
+      language: true,
+      createdAt: true
+    })
       .populate({ path: "instructor", select: "firstname lastname image" })
       .populate({ path: "category", select: "name description" })
       .populate({ path: "ratingAndReviews", select: "rating review" })
+      .sort(sortObj)
+      .skip(skip)
+      .limit(Number(limit))
       .exec();
 
-    // 🔥 3. Save to Redis
-    await redis.set(
-      cacheKey,
-      JSON.stringify(allCourses),
-      "EX",
-      60 * 10 // 10 min
-    );
+    const totalCourses = await Course.countDocuments(query);
 
     return res.status(200).json({
       success: true,
-      source: "db",
       courses: allCourses,
+      pagination: {
+        totalCourses,
+        currentPage: Number(page),
+        totalPages: Math.ceil(totalCourses / Number(limit)),
+        hasMore: skip + allCourses.length < totalCourses
+      }
     });
   } catch (error: any) {
     console.log("Error in getAllCourse ", error);
-    return res.status(404).json({
+    return res.status(500).json({
       success: false,
-      message: `Can't Fetch Course Data`,
+      message: `Failed to fetch course data`,
       error: error.message,
     });
   }
@@ -393,13 +431,19 @@ export const getCourseFullDetails = async (req: Request, res: Response) => {
 // Get a list of Course for a given Instructor
 export const getInstructorCourses = async (req: Request, res: Response) => {
   try {
-    // Get the instructor ID from the authenticated user or request body
     const instructorId = (req as any).user._id;
+    const { page = 1, limit = 9, status } = req.query;
 
-    // Find all courses belonging to the instructor
-    const instructorCourses = await Course.find({
-      instructor: instructorId,
-    })
+    const skip = (Number(page) - 1) * Number(limit);
+
+    // Build query object
+    const query: any = { instructor: instructorId };
+    if (status) {
+      query.status = status;
+    }
+
+    // Find courses belonging to the instructor with pagination and optional status filter
+    const instructorCourses = await Course.find(query)
       .sort({ createdAt: -1 })
       .populate({
         path: "instructor",
@@ -413,12 +457,23 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
           path: "subSections",
           select: "title description timeDuration videoUrl",
         },
-      });
+      })
+      .skip(skip)
+      .limit(Number(limit))
+      .exec();
 
-    // Return the instructor's courses
+    const totalCourses = await Course.countDocuments(query);
+
+    // Return the instructor's courses with pagination meta
     res.status(200).json({
       success: true,
       instructorCourses,
+      pagination: {
+        totalCourses,
+        currentPage: Number(page),
+        totalPages: Math.ceil(totalCourses / Number(limit)),
+        hasMore: skip + instructorCourses.length < totalCourses
+      }
     });
   } catch (error: any) {
     console.error(error);

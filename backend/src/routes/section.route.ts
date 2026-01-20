@@ -4,15 +4,15 @@ import {
   updateSection,
   deleteSection
 } from "../controllers/section.controller";
-import { isInstuctor } from "../middlewares/role.middleware";
+import { isInstructor } from "../middlewares/role.middleware";
 import { protect } from "../middlewares/protect.middleware";
 
 const router = Router();
 
 // Section routes
-router.post("/", protect, isInstuctor, createSection);          // Create Section
-router.put("/:id", protect, isInstuctor, updateSection); // Update Section
-router.delete("/:id", protect, isInstuctor, deleteSection); // Delete Section
+router.post("/", protect, isInstructor, createSection);          // Create Section
+router.put("/:sectionId", protect, isInstructor, updateSection); // Update Section
+router.delete("/:id", protect, isInstructor, deleteSection); // Delete Section
 
 
 export default router;

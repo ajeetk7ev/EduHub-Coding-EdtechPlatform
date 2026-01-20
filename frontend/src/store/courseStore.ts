@@ -4,51 +4,78 @@ import axios from "axios";
 import { API_URL } from "@/constants/api";
 
 // ---------- Store ----------
+interface PaginationData {
+  totalCourses: number;
+  currentPage: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
+interface FetchCoursesParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: string;
+}
+
 interface CoursesState {
   courses: CourseSummary[];
   courseDetails: CourseDetails | null;
-  totalCourseDuration:string | "";
+  totalCourseDuration: string | "";
   courseLoading: boolean;
   courseDetailsLoading: boolean;
+  pagination: PaginationData | null;
 
-  fetchAllCourses: () => Promise<void>;
-  fetchCoursesByCategory: (categoryId: string) => Promise<void>;
+  fetchAllCourses: (params?: FetchCoursesParams) => Promise<void>;
   fetchCourseDetails: (id: string) => Promise<void>;
 }
 
 export const useCoursesStore = create<CoursesState>((set) => ({
   courses: [],
   courseDetails: null,
-  totalCourseDuration:"",
+  totalCourseDuration: "",
   courseLoading: false,
   courseDetailsLoading: false,
+  pagination: null,
 
-  // Fetch all published courses (summary list)
-  fetchAllCourses: async () => {
+  // Fetch all published courses with pagination and filters
+  fetchAllCourses: async (params = {}) => {
     set({ courseLoading: true });
     try {
-      const res = await axios.get(`${API_URL}/course`);
+      const {
+        page = 1,
+        limit = 9,
+        search = "",
+        category = "all",
+        minPrice,
+        maxPrice,
+        sort = "newest"
+      } = params;
+
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        search,
+        category,
+        sort
+      });
+
+      if (minPrice) queryParams.append("minPrice", minPrice.toString());
+      if (maxPrice) queryParams.append("maxPrice", maxPrice.toString());
+
+      const res = await axios.get(`${API_URL}/course?${queryParams.toString()}`);
       if (res.data.success) {
-        set({ courses: res.data.courses });
+        set({
+          courses: res.data.courses,
+          pagination: res.data.pagination
+        });
       }
     } catch (error) {
       console.error("Error fetching all courses:", error);
-    } finally {
-      set({ courseLoading: false });
-    }
-  },
-
-  // Fetch courses by category
-  fetchCoursesByCategory: async (categoryId: string) => {
-    set({ courseLoading: true });
-    try {
-      const res = await axios.get(`${API_URL}/course/category/${categoryId}`);
-      if (res.data.success) {
-        set({ courses: res.data.courses });
-      }
-    } catch (error) {
-      console.error("Error fetching courses by category:", error);
-      set({ courses: [] });
+      set({ courses: [], pagination: null });
     } finally {
       set({ courseLoading: false });
     }
@@ -58,12 +85,11 @@ export const useCoursesStore = create<CoursesState>((set) => ({
   fetchCourseDetails: async (id: string) => {
     set({ courseDetailsLoading: true });
     try {
-      console.log("PRINTING ID ", id);
+
       const res = await axios.get(`${API_URL}/course/${id}`);
       if (res.data.success) {
-        console.log('PRINTING FULL COURSE DETAILS',res.data);
         set({ courseDetails: res.data.data.course });
-        set({totalCourseDuration:res.data.data.totalDuration})
+        set({ totalCourseDuration: res.data.data.totalDuration })
       }
     } catch (error) {
       console.error("Error fetching course details:", error);

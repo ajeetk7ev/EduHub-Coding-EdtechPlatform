@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, Loader } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import CircleLoader from '@/components/ui/CircleLoader';
 
 
 function Login() {
@@ -29,20 +30,27 @@ function Login() {
 
   return (
 
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4 font-sans antialiased relative">
-    
-      <div className="bg-gray-800 text-white rounded-3xl shadow-2xl p-8 max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01] border-2 border-transparent hover:border-blue-500">
+    <div className="min-h-screen bg-[#050816] flex flex-col items-center justify-center p-2 sm:p-6 font-sans antialiased">
+
+      {/* Login Card */}
+      <div className="bg-[#0d1b2a]/50 p-8 md:p-12 rounded-3xl shadow-xl max-w-md w-full border border-blue-500/10 backdrop-blur-md relative">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        </button>
+
         <div className="text-center mb-8">
-          <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-            Welcome Back!
-          </h2>
-          <p className="text-gray-400 mt-2 text-lg">Log in to your account.</p>
+          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+          <p className="text-gray-400 text-sm">Please enter your details to sign in</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="text-sm font-medium text-gray-300 ml-1">
               Email Address
             </label>
             <input
@@ -50,63 +58,71 @@ function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+              className="w-full px-4 py-3 bg-[#050816] rounded-xl text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-600"
               required
-              placeholder="you@example.com"
+              placeholder="name@company.com"
             />
           </div>
 
-          {/* Password with toggle */}
-          <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 pr-10 bg-gray-700 rounded-lg text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-              required
-              placeholder="••••••••"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 top-5 flex items-center pr-3 text-gray-400 hover:text-white transition-colors duration-200"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
+          {/* Password */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center ml-1">
+              <label htmlFor="password" className="text-sm font-medium text-gray-300">
+                Password
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-12 bg-[#050816] rounded-xl text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-600"
+                required
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-500 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
-          {/* Forgot Password Link */}
-          <div className="text-right -mt-5 ">
+          <div className="flex justify-end">
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 transition-colors duration-200"
+              className="text-sm font-semibold text-blue-500 hover:text-blue-400 transition-colors"
             >
-              Forgot Password?
+              Forgot password?
             </Link>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3 px-4 rounded-lg text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl text-base font-bold text-white bg-blue-600 hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
             disabled={authIsLoading}
           >
-            {authIsLoading && <Loader className="animate-spin h-5 w-5 text-white" />}
-            {authIsLoading ? 'Logging In...' : 'Log In'}
+            {authIsLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <CircleLoader size={20} color="white" />
+                <span>Signing in...</span>
+              </div>
+            ) : (
+              'Login'
+            )}
           </button>
         </form>
 
-        {/* Navigate to signup option */}
-        <div className="text-center mt-6 text-gray-400">
-          <p>Don't have an account?{' '}
+        <div className="text-center mt-8">
+          <p className="text-gray-400 text-sm">
+            Don't have an account?{' '}
             <Link
               to="/signup"
-              className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 transition-colors duration-200"
+              className="text-blue-500 font-bold hover:text-blue-400 transition-colors ml-1"
             >
               Sign up
             </Link>

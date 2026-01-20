@@ -4,18 +4,20 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Pencil,
   Trash2,
   PlusCircle,
   Loader2,
-  FileText,
-  Heading,
-  UploadCloud,
+  Upload,
+  Play,
+  Layout,
+  Video,
+  ChevronDown,
+  X
 } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -24,6 +26,7 @@ import { useAuthStore } from "@/store/authStore";
 import type { CourseDetails, Section } from "@/types";
 import { Textarea } from "@/components/ui/textarea";
 import { useCoursesStore } from "@/store/courseStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function UpdateCourseContentDialog({
   course,
@@ -34,8 +37,7 @@ export default function UpdateCourseContentDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const {fetchAllCourses} = useCoursesStore();
-  console.log("PRINTNIG COURSE IN UPDATECOURSE CONTENT", course);
+  const { fetchAllCourses } = useCoursesStore();
   const { token } = useAuthStore();
   const [sections, setSections] = useState<Section[]>(
     course?.courseContent || []
@@ -43,12 +45,10 @@ export default function UpdateCourseContentDialog({
   const [newSection, setNewSection] = useState("");
   const [addLoading, setAddLoading] = useState(false);
 
-  // state for subsection editing
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedSubsection, setSelectedSubsection] = useState<any>(null);
   const [subSectionDeleteLoading, setSubSectionDeleteLoading] = useState<string | null>(null);
 
-  // ✅ Add Section
   const addSection = async () => {
     if (!newSection.trim()) {
       toast.error("Section title required");
@@ -74,7 +74,6 @@ export default function UpdateCourseContentDialog({
     }
   };
 
-  // ✅ Delete Section
   const deleteSection = async (sectionId: string) => {
     try {
       const res = await axios.delete(
@@ -90,7 +89,6 @@ export default function UpdateCourseContentDialog({
     }
   };
 
-  // ✅ Add Subsection
   const addSubsection = async (
     sectionId: string,
     title: string,
@@ -136,7 +134,6 @@ export default function UpdateCourseContentDialog({
     }
   };
 
-  // ✅ Edit Subsection
   const handleSaveSubsection = async (data: any) => {
     const formData = new FormData();
     formData.append("title", data.title);
@@ -172,7 +169,6 @@ export default function UpdateCourseContentDialog({
     }
   };
 
-  // ✅ Delete Subsection
   const handleDeleteSubsection = async (subSectionId: string, sectionId: string) => {
     setSubSectionDeleteLoading(subSectionId);
     try {
@@ -183,11 +179,9 @@ export default function UpdateCourseContentDialog({
         data: {
           sectionId,
         },
-      },
-      );
+      });
 
       if (res.data.success) {
-        // Remove subsection from state
         setSections(
           sections.map((sec) =>
             sec._id === sectionId
@@ -204,13 +198,11 @@ export default function UpdateCourseContentDialog({
         toast.success("Subsection deleted");
       }
     } catch (error: any) {
-      console.log("Error in deleting Subsection", error);
       toast.error(error.response?.data?.message || "Failed to delete subsection");
     } finally {
       setSubSectionDeleteLoading(null);
     }
   };
-
 
   useEffect(() => {
     if (course?.courseContent) {
@@ -220,127 +212,143 @@ export default function UpdateCourseContentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl bg-gradient-to-r from-[#1f2937] to-[#111827] text-white h-[90vh] flex flex-col">
-        {/* Sticky header */}
-        <DialogHeader className="shrink-0 border-b text-white border-gray-200 pb-2">
-          <DialogTitle>Edit Course Content</DialogTitle>
+      <DialogContent className="max-w-[95vw] sm:max-w-[90vw] lg:max-w-[50vw] p-0 bg-[#050816] text-white border border-white/10 rounded-[2.5rem] overflow-hidden flex flex-col h-[85vh] shadow-2xl">
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -z-10" />
+
+        <DialogHeader className="p-8 pb-4 border-b border-white/5 shrink-0">
+          <DialogTitle className="text-3xl font-black tracking-tight">
+            Edit <span className="text-blue-500">Curriculum</span>
+          </DialogTitle>
+          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Manage sections and lessons for your course</p>
         </DialogHeader>
 
-        {/* Scrollable content */}
-        <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+        <div className="flex-1 overflow-y-auto p-8 pt-6 space-y-10 custom-scrollbar">
           {/* Add Section */}
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-4 p-2 bg-white/5 rounded-3xl border border-white/5 backdrop-blur-md">
             <Input
-              placeholder="Enter section title"
+              placeholder="e.g. Advanced State Management"
               value={newSection}
               onChange={(e) => setNewSection(e.target.value)}
-              className="bg-gray-700 border-gray-600 text-white"
+              className="bg-transparent border-none h-14 focus-visible:ring-0 text-white font-bold placeholder:text-gray-600"
             />
-            <Button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={addSection}
               disabled={addLoading}
-              className="bg-yellow-500 hover:bg-yellow-600 text-black"
+              className="px-8 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-xl shadow-blue-600/20 flex items-center gap-2 whitespace-nowrap"
             >
-              {addLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding...
-                </>
-              ) : (
-                <>
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Section
-                </>
-              )}
-            </Button>
+              {addLoading ? <Loader2 className="animate-spin" size={18} /> : <PlusCircle size={18} />}
+              Add Section
+            </motion.button>
           </div>
 
-          {/* Render Sections */}
-          <div className="space-y-4">
-            {sections.map((sec) => (
-              <Card
-                key={sec._id}
-                className="p-4 bg-gray-900 border border-gray-700"
-              >
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-yellow-400">
-                    {sec.title}
-                  </h2>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => deleteSection(sec._id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* Subsections */}
-                <div className="ml-4 space-y-3 mt-3">
-                  {sec.subSections.map((sub) => (
-                    <CardContent
-                      key={sub._id}
-                      className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Heading className="w-4 h-4 text-yellow-400" />
-                          <h3 className="text-white font-medium">
-                            {sub.title}
-                          </h3>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => handleDeleteSubsection(sub._id, sec._id)}
-                            disabled={subSectionDeleteLoading === sub._id}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            {subSectionDeleteLoading === sub._id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedSubsection({
-                                ...sub,
-                                sectionId: sec._id,
-                              });
-                              setEditDialogOpen(true);
-                            }}
-                          >
-                            <Pencil className="w-4 h-4 text-blue-400" />
-                          </Button>
-                        </div>
+          <div className="space-y-6">
+            <AnimatePresence mode="popLayout">
+              {sections.map((sec, index) => (
+                <motion.div
+                  key={sec._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="glass rounded-[2.5rem] border border-white/5 overflow-hidden group"
+                >
+                  <div className="p-6 bg-white/[0.02] border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-8 h-8 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-400 font-black text-xs">
+                        {index + 1}
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
-                        <FileText className="w-4 h-4" /> {sub.description}
-                      </div>
-                      {sub.videoUrl && (
-                        <video
-                          src={sub.videoUrl}
-                          controls
-                          preload="metadata"
-                          className="w-full max-h-60 rounded-lg border border-gray-700"
-                        />
-                      )}
-                    </CardContent>
-                  ))}
-                </div>
+                      <h3 className="text-lg font-black text-white tracking-tight">{sec.title}</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => deleteSection(sec._id)}
+                        className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                      <ChevronDown size={20} className="text-gray-600" />
+                    </div>
+                  </div>
 
-                {/* Add Subsection Form */}
-                <SubsectionForm
-                  onAdd={(t, d, v) => addSubsection(sec._id, t, d, v)}
-                />
-              </Card>
-            ))}
+                  <div className="p-6 space-y-4">
+                    <div className="space-y-3">
+                      <AnimatePresence mode="popLayout">
+                        {sec.subSections.map((sub) => (
+                          <motion.div
+                            key={sub._id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between hover:bg-white/[0.05] transition-all group/sub"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="w-10 h-10 rounded-xl bg-purple-600/10 flex items-center justify-center text-purple-400">
+                                <Play size={16} fill="currentColor" />
+                              </div>
+                              <div>
+                                <h4 className="font-black text-white text-sm">{sub.title}</h4>
+                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-xs">{sub.description}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {sub.videoUrl && (
+                                <span className="flex items-center gap-2 text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full uppercase tracking-widest mr-2">
+                                  <Video size={12} /> Video
+                                </span>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setSelectedSubsection({ ...sub, sectionId: sec._id });
+                                  setEditDialogOpen(true);
+                                }}
+                                className="p-2 text-gray-500 hover:text-blue-400 transition-all opacity-0 group-hover/sub:opacity-100"
+                              >
+                                <Pencil size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSubsection(sub._id, sec._id)}
+                                disabled={subSectionDeleteLoading === sub._id}
+                                className="p-2 text-gray-500 hover:text-red-400 transition-all opacity-0 group-hover/sub:opacity-100 disabled:opacity-50"
+                              >
+                                {subSectionDeleteLoading === sub._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                              </button>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+
+                    <SubsectionForm
+                      onAdd={(t, d, v) => addSubsection(sec._id, t, d, v)}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {sections.length === 0 && (
+              <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[3rem]">
+                <div className="w-20 h-20 bg-white/5 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-gray-600">
+                  <Layout size={40} />
+                </div>
+                <p className="text-gray-400 font-bold">Your curriculum is looking a bit empty.</p>
+                <p className="text-gray-600 text-xs mt-2 uppercase tracking-widest">Start by adding your first section above</p>
+              </div>
+            )}
           </div>
         </div>
+
+        <DialogFooter className="p-8 pt-4 border-t border-white/5 shrink-0 flex justify-end">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="px-10 py-4 bg-white/5 text-gray-400 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all"
+          >
+            Done Editing
+          </button>
+        </DialogFooter>
       </DialogContent>
 
-      {/* Edit Subsection Dialog */}
       {selectedSubsection && (
         <EditSubsectionDialog
           open={editDialogOpen}
@@ -353,111 +361,102 @@ export default function UpdateCourseContentDialog({
   );
 }
 
-// ------------------------
-// Add Subsection Form
-// ------------------------
-function SubsectionForm({
-  onAdd,
-}: {
-  onAdd: (title: string, desc: string, video?: File | null) => void;
-}) {
+function SubsectionForm({ onAdd }: { onAdd: (title: string, desc: string, video?: File | null) => void }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [video, setVideo] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
-  // Create & cleanup preview URL
-  useEffect(() => {
-    if (video) {
-      const url = URL.createObjectURL(video);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(null);
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setVideo(e.target.files[0]);
     }
-  }, [video]);
+  };
 
   const handleSubmit = async () => {
-    if (!title || !desc || !video) {
-      toast.error("All fields required");
+    if (!title.trim() || !desc.trim() || !video) {
+      toast.error("Please fill all subsection fields");
       return;
     }
     setLoading(true);
     await onAdd(title, desc, video);
+    setLoading(false);
     setTitle("");
     setDesc("");
     setVideo(null);
-    setLoading(false);
+    setShowForm(false);
   };
 
-  return (
-    <div className="mt-4 space-y-3">
-      {/* Title + Desc */}
-      <div className="flex gap-2">
-        <Input
-          placeholder="Subsection title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="bg-gray-700 text-white"
-        />
-        <Input
-          placeholder="Description"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-          className="bg-gray-700 text-white"
-        />
-      </div>
-
-      {/* Upload Box */}
-      <label
-        htmlFor="video-upload-add"
-        className="flex flex-col items-center justify-center w-full h-32 px-4 border-2 border-dashed border-gray-500 rounded-lg cursor-pointer bg-gray-800 hover:border-green-500 transition"
+  if (!showForm) {
+    return (
+      <button
+        onClick={() => setShowForm(true)}
+        className="w-full py-4 border-2 border-dashed border-white/5 rounded-2xl text-gray-500 font-black text-xs uppercase tracking-widest hover:border-blue-500/50 hover:bg-white/[0.02] transition-all flex items-center justify-center gap-2"
       >
-        <UploadCloud className="w-8 h-8 text-gray-300 mb-2" />
-        <span className="text-gray-300">
-          {video ? video.name : "Click to upload or drag & drop video"}
-        </span>
-        <input
-          id="video-upload-add"
-          type="file"
-          accept="video/*"
-          className="hidden"
-          onChange={(e) => e.target.files && setVideo(e.target.files[0])}
-        />
-      </label>
+        <PlusCircle size={14} /> Add Lesson / Subsection
+      </button>
+    );
+  }
 
-      {/* Video Preview */}
-      {previewUrl && (
-        <div className="mt-2">
-          <video
-            src={previewUrl}
-            controls
-            className="w-full rounded-lg border border-gray-600"
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="p-6 bg-white/[0.03] border border-blue-500/20 rounded-3xl space-y-4"
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Lesson Title</label>
+          <Input
+            placeholder="e.g. Setting up the environment"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-blue-500/50 text-white font-bold"
           />
         </div>
-      )}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Description</label>
+          <Input
+            placeholder="Brief overview"
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-blue-500/50 text-white font-bold"
+          />
+        </div>
+      </div>
 
-      {/* Submit Button */}
-      <Button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-green-600 hover:bg-green-700 w-full"
-      >
-        {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          "+ Add Subsection"
-        )}
-      </Button>
-    </div>
+      <div className="space-y-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Lesson Video</label>
+        <label className="border-2 border-dashed border-white/5 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all group">
+          <Upload className={`w-6 h-6 mb-2 transition-all ${video ? "text-emerald-500" : "text-gray-500 group-hover:text-blue-500"}`} />
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            {video ? video.name : "Select Video File"}
+          </span>
+          <input type="file" accept="video/*" className="hidden" onChange={handleVideoUpload} />
+        </label>
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {loading ? <Loader2 className="animate-spin" size={14} /> : <PlusCircle size={14} />}
+          Save Lesson
+        </button>
+        <button
+          onClick={() => setShowForm(false)}
+          className="px-6 py-3 bg-white/5 text-gray-500 hover:text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+    </motion.div>
   );
 }
 
-
-// ------------------------
-// Edit Subsection Dialog
-// ------------------------
 function EditSubsectionDialog({
   open,
   onClose,
@@ -469,12 +468,9 @@ function EditSubsectionDialog({
   subsection: any;
   onSave: (data: any) => Promise<void>;
 }) {
-
-  console.log("PRINTING SUBSECTION", subsection);
   const [title, setTitle] = useState(subsection?.title || "");
   const [description, setDescription] = useState(subsection?.description || "");
   const [video, setVideo] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -489,107 +485,70 @@ function EditSubsectionDialog({
       sectionId: subsection.sectionId,
       title,
       description,
-      video, // ✅ send video to parent
+      video,
     });
     setLoading(false);
     onClose();
   };
 
-  // Create & cleanup preview URL
-  useEffect(() => {
-    if (video) {
-      const url = URL.createObjectURL(video);
-      setPreviewUrl(url);
-      return () => URL.revokeObjectURL(url);
-    } else {
-      setPreviewUrl(null);
-    }
-  }, [video]);
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg bg-gradient-to-r from-[#1f2937] to-[#111827] text-white rounded-2xl shadow-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">
-            Edit Subsection
-          </DialogTitle>
+      <DialogContent className="max-w-xl p-0 bg-[#0a0f1e] text-white border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <DialogHeader className="p-8 pb-4 border-b border-white/5">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-black tracking-tight">Edit <span className="text-blue-500">Lesson</span></DialogTitle>
+            <button onClick={onClose} className="p-2 text-gray-600 hover:text-white transition-colors"><X size={20} /></button>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Title */}
-          <div>
-            <label className="text-sm font-medium">Title</label>
+        <div className="p-8 space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Lesson Title</label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter subsection title"
-              className="mt-1 bg-gray-700 border border-gray-800 placeholder:text-gray-400 "
+              className="bg-white/5 border-white/5 h-12 rounded-xl focus:border-blue-500/50 text-white font-bold"
             />
           </div>
 
-          {/* Description */}
-          <div>
-            <label className="text-sm font-medium">Description</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Description</label>
             <Textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter subsection description"
-              className="mt-1 bg-gray-700 border border-gray-800 placeholder:text-gray-400 "
+              className="bg-white/5 border-white/5 min-h-[100px] rounded-xl focus:border-blue-500/50 text-white font-bold p-4"
             />
           </div>
 
-          {/* Video Upload */}
-          <div>
-            <label
-              htmlFor="video-upload-edit"
-              className="flex flex-col items-center justify-center w-full h-32 px-4 border-2 border-dashed border-gray-500 rounded-lg cursor-pointer bg-gray-800 hover:border-green-500 transition"
-            >
-              <UploadCloud className="w-8 h-8 text-gray-300 mb-2" />
-              <span className="text-gray-300">
-                {video ? video.name : "Click to upload or drag & drop video"}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-1">Replace Video (Optional)</label>
+            <label className="border-2 border-dashed border-white/5 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-all group">
+              <Upload className={`w-6 h-6 mb-2 transition-all ${video ? "text-emerald-500" : "text-gray-500 group-hover:text-blue-500"}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                {video ? video.name : "Select New Video File"}
               </span>
-              <input
-                id="video-upload-edit"
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={(e) => e.target.files && setVideo(e.target.files[0])}
-              />
+              <input type="file" accept="video/*" className="hidden" onChange={(e) => e.target.files && setVideo(e.target.files[0])} />
             </label>
-
-            {/* Video Preview */}
-            {previewUrl && (
-              <div className="mt-2">
-                <video
-                  src={previewUrl}
-                  controls
-                  className="w-full rounded-lg border border-gray-600"
-                />
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex justify-end gap-3 mt-4">
-          <Button
+        <DialogFooter className="p-8 pt-4 border-t border-white/5 flex gap-3">
+          <button
             onClick={onClose}
-            className="rounded-xl bg-white cursor-pointer text-black hover:bg-white"
+            className="flex-1 py-4 text-gray-500 hover:text-white font-black text-[10px] uppercase tracking-widest transition-all"
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-amber-400 hover:bg-amber-500 text-black font-semibold rounded-xl"
+            className="flex-[2] py-4 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {loading ? (
-              <Loader2 className="animate-spin h-4 w-4 mr-2" />
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </div>
+            {loading ? <Loader2 className="animate-spin" size={14} /> : "Save Changes"}
+          </motion.button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

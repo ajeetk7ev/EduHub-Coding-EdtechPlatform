@@ -1,62 +1,116 @@
 export const forgotPasswordTemplate = (name: string, resetUrl: string) => `
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <title>Password Reset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Your Password | EduHub</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f8f9fa;
-        padding: 20px;
-        color: #333;
-      }
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        background: #fff;
-        border-radius: 8px;
-        padding: 30px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-      h2 {
-        color: #007bff;
-      }
-      p {
-        font-size: 15px;
-        line-height: 1.5;
-      }
-      .btn {
-        display: inline-block;
-        margin-top: 20px;
-        padding: 12px 20px;
-        background: #007bff;
-        color: #fff !important;
-        text-decoration: none;
-        border-radius: 5px;
-        font-weight: bold;
-      }
-      .footer {
-        margin-top: 30px;
-        font-size: 12px;
-        color: #888;
-        text-align: center;
-      }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #050816;
+            color: #d1d5db;
+        }
+        .wrapper {
+            width: 100%;
+            table-layout: fixed;
+            background-color: #050816;
+            padding-bottom: 60px;
+        }
+        .main {
+            background-color: #0d1b2a;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 600px;
+            border-spacing: 0;
+            border-radius: 24px;
+            border: 1px solid #1e293b;
+            overflow: hidden;
+            margin-top: 40px;
+        }
+        .header {
+            padding: 40px 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+        }
+        .content {
+            padding: 40px 30px;
+            text-align: left;
+        }
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #9ca3af;
+            margin-bottom: 24px;
+        }
+        .btn-container {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 16px 36px;
+            background-color: #ffffff;
+            color: #2563eb !important;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .footer {
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #6b7280;
+            border-top: 1px solid #1e293b;
+        }
+        .link-alt {
+            word-break: break-all;
+            color: #3b82f6;
+            font-size: 13px;
+            text-decoration: none;
+        }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>Password Reset Request</h2>
-      <p>Hi ${name},</p>
-      <p>You requested to reset your password. Click the button below to set a new password:</p>
-      <a href="${resetUrl}" class="btn">Reset Password</a>
-      <p>If the button doesn’t work, copy and paste the following link into your browser:</p>
-      <p><a href="${resetUrl}">${resetUrl}</a></p>
-      <div class="footer">
-        <p>If you didn’t request this, you can ignore this email.</p>
-        <p>— EduHub Team</p>
-      </div>
+</head>
+<body>
+    <div class="wrapper">
+        <table class="main">
+            <tr>
+                <td class="header">
+                    <h1>EduHub</h1>
+                </td>
+            </tr>
+            <tr>
+                <td class="content">
+                    <p style="color: #ffffff; font-size: 20px; font-weight: 600;">Hello ${name},</p>
+                    <p>We received a request to reset your EduHub account password. If you didn't make this request, you can safely ignore this email.</p>
+                    <div class="btn-container">
+                        <a href="${resetUrl}" class="btn">Reset Password</a>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 14px;">This link will expire in 1 hour for security reasons.</p>
+                    <p style="font-size: 12px; margin-top: 40px;">If the button above doesn't work, copy and paste this URL into your browser:</p>
+                    <a href="${resetUrl}" class="link-alt">${resetUrl}</a>
+                </td>
+            </tr>
+            <tr>
+                <td class="footer">
+                    <p style="margin-bottom: 10px;">&copy; 2026 EduHub Learning Platform. All rights reserved.</p>
+                    <p>Tech Park, Bangalore, India</p>
+                </td>
+            </tr>
+        </table>
     </div>
-  </body>
+</body>
 </html>
 `;
+

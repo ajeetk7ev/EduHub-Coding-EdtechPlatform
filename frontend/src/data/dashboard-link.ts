@@ -6,6 +6,7 @@ import {
   GraduationCap,
   Settings,
   Home,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import { ACCOUNT_TYPE } from "@/constants/role";
 
@@ -33,11 +34,11 @@ export const sidebarLinks = [
 
   // Instructor Only
   {
-    id: 3,
-    name: "Dashboard",
-    path: "/dashboard/instructor",
+    id: 7,
+    name: "Analytics",
+    path: "/dashboard/instructor/analytics",
     type: ACCOUNT_TYPE.INSTRUCTOR,
-    icon: LayoutDashboard,
+    icon: PieChartIcon,
   },
   {
     id: 4,
@@ -63,6 +64,27 @@ export const sidebarLinks = [
     type: ACCOUNT_TYPE.STUDENT,
     icon: GraduationCap,
   },
-  
 
+  // Admin Only
+  {
+    id: 10,
+    name: "Dashboard",
+    path: "/dashboard/admin",
+    type: ACCOUNT_TYPE.ADMIN,
+    icon: LayoutDashboard,
+  },
+  {
+    id: 11,
+    name: "Users",
+    path: "/dashboard/admin/users",
+    type: ACCOUNT_TYPE.ADMIN,
+    icon: User,
+  },
+  {
+    id: 12,
+    name: "Courses",
+    path: "/dashboard/admin/courses",
+    type: ACCOUNT_TYPE.ADMIN,
+    icon: BookOpen,
+  },
 ];

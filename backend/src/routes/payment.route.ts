@@ -49,6 +49,21 @@ router.post("/buy", protect, isStudent, async (req: Request, res: Response) => {
             User.findByIdAndUpdate(userId, { $addToSet: { coursesEnrolled: courseId } }),
         ]);
 
+        // 🔥 Cache Invalidation: Invalidate all courses and full course details cache
+        try {
+            const redis = (await import("../config/redis")).default;
+            await redis.del("courses:all");
+            await redis.del(`course:full:${courseId}`);
+            // Also individual category cache if needed (though course summary is in courses:all)
+            const catId = course.category?.toString();
+            if (catId) {
+                await redis.del(`courses:category:${catId}`);
+            }
+            console.log("Redis cache invalidated after enrollment");
+        } catch (redisError) {
+            console.error("Redis invalidation error:", redisError);
+        }
+
         return res.status(200).json({
             success: true,
             message: "User enrolled in course successfully",

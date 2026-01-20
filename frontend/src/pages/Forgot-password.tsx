@@ -1,15 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { API_URL } from "@/constants/api";
+import CircleLoader from "@/components/ui/CircleLoader";
+import { useEffect } from "react";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSent, setIsSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   // ---- Handle First Submit ----
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,31 +38,9 @@ const ForgotPassword = () => {
 
       if (res.data.success) {
         toast.success(res.data.message || "Reset instructions sent!");
+        setEmail("");
         setIsSent(true); // Show resend option
-      }
-    } catch (error: any) {
-      console.error("Error in ForgotPassword:", error);
-      toast.error(
-        error.response?.data?.message ||
-        "Failed to send reset instructions"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ---- Handle Resend ----
-  const handleResend = async () => {
-    if (!email) return;
-    setIsLoading(true);
-
-    try {
-      const res = await axios.post(`${API_URL}/auth/forgot-password`, {
-        email,
-      });
-
-      if (res.data.success) {
-        toast.success("Instructions resent to your email!");
+        setCountdown(60); // Start 1-minute countdown
       }
     } catch (error: any) {
       console.error("Error in Resend:", error);
@@ -63,70 +54,77 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <div className="max-w-md w-full bg-gray-800 p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-white mb-4">
-          Reset your password
-        </h2>
-        <p className="text-gray-300 mb-6">
-          Enter your email address and we’ll send you instructions to reset your password.
-          If you don’t have access to your email, you can try account recovery.
-        </p>
+    <div className="min-h-screen bg-[#050816] flex flex-col items-center justify-center p-6 font-sans antialiased relative">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] -z-10 animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-600/10 rounded-full blur-[100px] -z-10 animate-pulse delay-700" />
+
+      {/* Forgot Password Card */}
+      <div className="bg-[#0d1b2a]/50 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-md w-full border border-blue-500/10 backdrop-blur-md relative overflow-hidden group">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/login")}
+          className="absolute top-6 left-6 p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group/btn"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover/btn:-translate-x-1 transition-transform" />
+        </button>
+
+        <div className="text-center mb-8 pt-6">
+          <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+            <Mail className="w-8 h-8 text-blue-500" />
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">
+            Forgot Password?
+          </h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            No worries! Enter your email and we'll send you a link to reset your password.
+          </p>
+        </div>
 
         {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
             <label
-              className="block text-gray-200 mb-1"
+              className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1"
               htmlFor="email"
             >
-              Email Address <span className="text-red-500">*</span>
+              Email Address
             </label>
-            <input
-              type="email"
-              id="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email address"
-              className="w-full px-4 py-3 rounded-md bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
+            <div className="relative">
+              <input
+                type="email"
+                id="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                className="w-full px-4 py-3 bg-[#050816] rounded-xl text-white border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-600"
+              />
+            </div>
           </div>
 
           {/* SUBMIT */}
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 rounded-lg text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
+            disabled={isLoading || (isSent && countdown > 0)}
+            className="w-full py-4 rounded-xl text-lg font-bold text-[#050816] bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 transition-all shadow-lg shadow-cyan-500/20 active:scale-[0.98] flex items-center justify-center gap-2 group/submit disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading && (
-              <Loader className="animate-spin h-5 w-5 text-gray-300" />
+            {isLoading ? (
+              <CircleLoader size={24} color="#050816" />
+            ) : isSent ? (
+              countdown > 0 ? `Wait ${countdown}s` : "Send Again"
+            ) : (
+              "Send Reset Link"
             )}
-            {isLoading ? "Sending..." : isSent ? "Sent" : "Send"}
           </button>
         </form>
 
-        {/* RESEND */}
-        {isSent && (
-          <button
-            onClick={handleResend}
-            disabled={isLoading}
-            className="mt-4 w-full py-3 px-4 rounded-lg text-lg font-bold text-white bg-gradient-to-r from-green-600 to-emerald-600 transition-all duration-300 hover:from-green-700 hover:to-emerald-700 hover:shadow-lg focus:outline-none flex items-center justify-center gap-2"
-          >
-            {isLoading && (
-              <Loader className="animate-spin h-5 w-5 text-gray-300" />
-            )}
-            Resend Instructions
-          </button>
+        {/* RESEND HINT */}
+        {isSent && countdown > 0 && (
+          <p className="mt-4 text-center text-sm text-gray-500">
+            Didn't receive the email? You can resend in <span className="text-cyan-400 font-bold">{countdown}s</span>
+          </p>
         )}
-
-        {/* BACK */}
-        <button
-          onClick={() => navigate("/login")}
-          className="mt-4 text-gray-300 hover:text-white flex items-center gap-1"
-        >
-          &larr; Back To Login
-        </button>
       </div>
     </div>
   );

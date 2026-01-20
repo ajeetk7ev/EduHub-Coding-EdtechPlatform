@@ -10,7 +10,7 @@ export const createSubSection = async (req: Request, res: Response) => {
     const { sectionId, title, description } = req.body;
     const video = (req.files as any)?.video; // safely access uploaded video
 
-    console.log("PRINTING DATA ", sectionId, title, description, video);
+    // console.log("PRINTING DATA ", sectionId, title, description, video);
 
     // Validation
     if (!sectionId || !title || !description || !video) {

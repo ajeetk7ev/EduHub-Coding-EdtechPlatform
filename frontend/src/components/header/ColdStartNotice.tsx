@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Info, X } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export default function ColdStartNotice() {
   const [visible, setVisible] = useState(true);
+  const location = useLocation();
 
-  if (!visible) return null;
+  // Only show on the homepage
+  if (!visible || location.pathname !== "/") return null;
 
   return (
     <div className="w-full bg-indigo-900/60 border-b border-indigo-500/40 text-indigo-50">

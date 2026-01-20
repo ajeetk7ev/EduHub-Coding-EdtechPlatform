@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         password,
       });
 
-      console.log("API RES ",res)
+
 
       if (res.status === 201 && res.data.success) {
         return { success: true, message: res.data.message || "Registered successfully" };
@@ -76,12 +76,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
 
-  loadUser:  () => {
+  loadUser: () => {
 
     try {
       const storedUser = getFromLocalStorage("user");
       const storedToken = getFromLocalStorage("token");
-      // console.log("STORESD USER IS ", storedUser);
       if (storedUser && storedToken) {
         set({
           user: storedUser,
@@ -91,13 +90,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       return;
     } catch (error) {
       console.error("Error loading user from storage:", error);
-    } 
+    }
   },
 
 
   logout: () => {
-       removeFromLocalStorage("user");
-       removeFromLocalStorage("token");
-       set({ user: null, token: null });
+    removeFromLocalStorage("user");
+    removeFromLocalStorage("token");
+    set({ user: null, token: null });
   },
 }));

@@ -13,20 +13,22 @@ import subSectionRoutes from './routes/subSection.route';
 import ratingAndReviewRoutes from './routes/ratingAndReview.routes';
 import aiRoutes from './routes/ai.route';
 import paymentRoutes from './routes/payment.route';
+import instructorRoutes from './routes/instructor.route';
+import adminRoutes from './routes/admin.route';
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 app.use(fileUpload({
-    useTempFiles:true,
-	tempFileDir:"/tmp",
+    useTempFiles: true,
+    tempFileDir: "/tmp",
 }))
 
 const PORT = process.env.PORT || 5000;
 
 
-app.get("/health", (_, res:Response) =>{
-      res.send("Server is working fine")
+app.get("/health", (_, res: Response) => {
+    res.send("Server is working fine")
 })
 
 app.use("/api/auth", authRoutes);
@@ -35,11 +37,13 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/course", courseRoutes);
 app.use("/api/section", sectionRoutes);
 app.use("/api/sub-section", subSectionRoutes);
-app.use("/api/rating-review",  ratingAndReviewRoutes);
+app.use("/api/rating-review", ratingAndReviewRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/course", paymentRoutes);
+app.use("/api/instructor", instructorRoutes);
+app.use("/api/admin", adminRoutes);
 
-app.listen(PORT, async() => {
+app.listen(PORT, async () => {
     await dbConnect();
     console.log(`Server is running at port ${PORT}`)
 })

@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Loader } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import CircleLoader from '@/components/ui/CircleLoader';
 // Define a type for the user role
 type UserRole = 'student' | 'instructor';
 
@@ -20,7 +21,7 @@ function Signup() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const result = await register(firstName, lastName, email, password);
-    console.log("SIGNUP RESULT IS ", result);
+
 
     if (result.success) {
       toast.success(result.message);
@@ -36,42 +37,52 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4 font-sans antialiased">
-      <div className="bg-gray-800 text-white rounded-3xl shadow-2xl p-8 max-w-lg w-full transform transition-all duration-300 hover:scale-[1.01] border-2 border-transparent hover:border-blue-500">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
-            Create Your Account
-          </h2>
-          <p className="text-gray-400 mt-2 text-lg">Join us and start your learning journey.</p>
+    <div className="min-h-screen bg-[#050816] flex flex-col items-center justify-center p-4 font-sans antialiased">
+
+      {/* Signup Card */}
+      <div className="bg-[#0d1b2a]/50 p-6 md:p-10 rounded-[2rem] shadow-xl max-w-md w-full border border-purple-500/10 backdrop-blur-md relative">
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 p-2 rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all group"
+        >
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        </button>
+
+        <div className="text-center mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Create Account</h2>
+          <p className="text-gray-400 text-xs md:text-sm">Join our community of developers</p>
         </div>
 
         {/* Role Selection Tabs */}
-        <div className="flex bg-gray-700 p-2 rounded-xl mb-8 shadow-inner">
-          <button
-            onClick={() => setRole('student')}
-            className={`flex-1 text-center py-3 rounded-lg font-semibold transition-colors duration-300 ${role === 'student'
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-              : 'text-gray-400 hover:bg-gray-600'
-              }`}
-          >
-            Student
-          </button>
-          <button
-            onClick={() => setRole('instructor')}
-            className={`flex-1 text-center py-3 rounded-lg font-semibold transition-colors duration-300 ${role === 'instructor'
-              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
-              : 'text-gray-400 hover:bg-gray-600'
-              }`}
-          >
-            Instructor
-          </button>
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex p-1 rounded-xl bg-[#050816] border border-gray-700/50">
+            <button
+              onClick={() => setRole('student')}
+              className={`px-6 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all ${role === 'student'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                : 'text-gray-500 hover:text-gray-300'
+                }`}
+            >
+              Student
+            </button>
+            <button
+              onClick={() => setRole('instructor')}
+              className={`px-6 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all ${role === 'instructor'
+                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20'
+                : 'text-gray-500 hover:text-gray-300'
+                }`}
+            >
+              Instructor
+            </button>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* First Name */}
-            <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-300 mb-1">
+            <div className="space-y-1">
+              <label htmlFor="firstName" className="text-xs font-medium text-gray-400 ml-1">
                 First Name
               </label>
               <input
@@ -79,15 +90,15 @@ function Signup() {
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-[#050816] rounded-xl text-white text-sm border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-700"
                 required
                 placeholder="John"
               />
             </div>
 
             {/* Last Name */}
-            <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-300 mb-1">
+            <div className="space-y-1">
+              <label htmlFor="lastName" className="text-xs font-medium text-gray-400 ml-1">
                 Last Name
               </label>
               <input
@@ -95,7 +106,7 @@ function Signup() {
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                className="w-full px-4 py-2.5 bg-[#050816] rounded-xl text-white text-sm border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-700"
                 required
                 placeholder="Doe"
               />
@@ -103,8 +114,8 @@ function Signup() {
           </div>
 
           {/* Email */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+          <div className="space-y-1">
+            <label htmlFor="email" className="text-xs font-medium text-gray-400 ml-1">
               Email Address
             </label>
             <input
@@ -112,53 +123,60 @@ function Signup() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700 rounded-lg text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 bg-[#050816] rounded-xl text-white text-sm border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-700"
               required
-              placeholder="you@example.com"
+              placeholder="name@company.com"
             />
           </div>
 
-          {/* Password with toggle */}
-          <div className="relative">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+          {/* Password */}
+          <div className="space-y-1">
+            <label htmlFor="password" className="text-xs font-medium text-gray-400 ml-1">
               Password
             </label>
-            <input
-              id="password"
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 pr-10 bg-gray-700 rounded-lg text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-              required
-              placeholder="••••••••"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 top-6 flex items-center pr-3 text-gray-400 hover:text-white transition-colors duration-200"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 pr-12 bg-[#050816] rounded-xl text-white text-sm border border-gray-700/50 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-gray-700"
+                required
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-600 hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3 px-4 rounded-lg text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300 hover:from-blue-700 hover:to-purple-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900 flex items-center justify-center gap-2"
+            className="w-full py-3 mt-4 rounded-xl text-sm font-bold text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20 active:scale-[0.98]"
             disabled={authIsLoading}
           >
-            {authIsLoading && <Loader className="animate-spin h-5 w-5 text-white" />}
-            {authIsLoading ? 'Signing Up...' : 'Sign Up'}
+            {authIsLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <CircleLoader size={18} color="white" />
+                <span>Creating...</span>
+              </div>
+            ) : (
+              'Sign Up'
+            )}
           </button>
         </form>
 
-        {/* Navigate to login option */}
-        <div className="text-center mt-6 text-gray-400">
-          <p>Already have an account?{' '}
+        <div className="text-center mt-6">
+          <p className="text-gray-400 text-xs font-medium">
+            Already have an account?{' '}
             <Link
               to="/login"
-              className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 transition-colors duration-200"
+              className="text-purple-500 font-bold hover:text-purple-400 transition-colors ml-1"
             >
               Log in
             </Link>
@@ -169,5 +187,5 @@ function Signup() {
   );
 }
 
-// Main App component to provide the routing context for the Link
+
 export default Signup;

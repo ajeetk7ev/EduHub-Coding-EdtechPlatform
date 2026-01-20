@@ -28,7 +28,7 @@ export const isStudent = async (req: Request, res: Response, next: NextFunction)
   }
 };
 
-export const isInstuctor = async (req: Request, res: Response, next: NextFunction) => {
+export const isInstructor = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const role = (req as any).user?.role;
 

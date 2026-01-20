@@ -1,7 +1,6 @@
 import { useRef, useState, type ChangeEvent } from "react";
-import { Eye, EyeOff, Loader, Trash2, Upload, X } from "lucide-react";
+import { Eye, EyeOff, Loader, Trash2, Upload } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import { useDashboardCollapsedStore } from "@/store/dashboardCollapsedStore";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +17,6 @@ import { API_URL } from "@/constants/api";
 import { setToLocalStorage } from "@/utlils/localstorage";
 
 const Settings = () => {
-  const { collapsed } = useDashboardCollapsedStore();
   const { user, token, loadUser } = useAuthStore();
   const navigate = useNavigate();
 
@@ -26,7 +24,7 @@ const Settings = () => {
     firstName: user?.firstname || "",
     lastName: user?.lastname || "",
     role: user?.role || "",
-     dob: user?.dob ? user.dob.split("T")[0] : "",
+    dob: user?.dob ? user.dob.split("T")[0] : "",
     gender: user?.gender || "",
     contactNo: user?.contactNo || "",
     about: user?.about || "",
@@ -77,264 +75,276 @@ const Settings = () => {
   };
 
 
-    const handleSaveProfile = async () => {
-      const formDataToUpdate = new FormData();
-      formDataToUpdate.append("firstname", formData.firstName);
-      formDataToUpdate.append("lastname", formData.lastName);
-      formDataToUpdate.append("about", formData.about);
-      formDataToUpdate.append("contactNo", formData.contactNo);
-      formDataToUpdate.append("gender", formData.gender);
-      formDataToUpdate.append("password", confirmPassword);
-      formDataToUpdate.append("dob", formData.dob);
+  const handleSaveProfile = async () => {
+    const formDataToUpdate = new FormData();
+    formDataToUpdate.append("firstname", formData.firstName);
+    formDataToUpdate.append("lastname", formData.lastName);
+    formDataToUpdate.append("about", formData.about);
+    formDataToUpdate.append("contactNo", formData.contactNo);
+    formDataToUpdate.append("gender", formData.gender);
+    formDataToUpdate.append("password", confirmPassword);
+    formDataToUpdate.append("dob", formData.dob);
 
-      if (imageFile) {
-        formDataToUpdate.append("image", imageFile);
+    if (imageFile) {
+      formDataToUpdate.append("image", imageFile);
+    }
+
+    setProfileSaving(true);
+    try {
+      const res = await axios.put(`${API_URL}/user/update`, formDataToUpdate, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      });
+      if (res.data.success) {
+        const { user, message } = res.data;
+        setToLocalStorage("user", user);
+        loadUser();
+        toast.success(message || "Profile Updated Successfully")
+        setShowConfirmPasswordModal(false)
+        navigate('/dashboard/my-profile');
+
       }
-
-      setProfileSaving(true);
-      try {
-        const res = await axios.put(`${API_URL}/user/update`, formDataToUpdate, {
-          headers: {Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-        });
-        if(res.data.success){
-          const {user, message} = res.data;
-          setToLocalStorage("user", user);
-          loadUser();
-          toast.success(message || "Profile Updated Successfully")
-          setShowConfirmPasswordModal(false)
-          navigate('/dashboard/my-profile');
-          
-        }
-      } catch (error:any) {
-        console.error("Error updating profile:", error);
-        toast.error(error.response.data.message || error.message || "Failed to update profile")
-      } finally {
-        setConfirmPassword('');
-        setProfileSaving(false);
-      }
-    };
-
-
- const handleChangePassword = async () => {
-  if (!formData.currentPassword || !formData.newPassword) {
-    toast.error("Please fill both current and new password");
-    return;
-  }
-
-  const changePasswordData = {
-    currentPassword: formData.currentPassword,
-    newPassword: formData.newPassword,
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast.error(error.response.data.message || error.message || "Failed to update profile")
+    } finally {
+      setConfirmPassword('');
+      setProfileSaving(false);
+    }
   };
 
-  setChangePasswordLoading(true);
 
-  try {
-    const res = await axios.put(`${API_URL}/user/change-password`, changePasswordData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (res.data.success) {
-      toast.success(res.data.message || "Password changed successfully");
-      setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "" }));
-    } else {
-      toast.error(res.data.message || "Failed to change password");
+  const handleChangePassword = async () => {
+    if (!formData.currentPassword || !formData.newPassword) {
+      toast.error("Please fill both current and new password");
+      return;
     }
-  } catch (error: any) {
-    console.error("Error changing password:", error);
-    toast.error(error.response?.data?.message || error.message || "Something went wrong");
-  } finally {
-    setChangePasswordLoading(false);
-  }
-};
+
+    const changePasswordData = {
+      currentPassword: formData.currentPassword,
+      newPassword: formData.newPassword,
+    };
+
+    setChangePasswordLoading(true);
+
+    try {
+      const res = await axios.put(`${API_URL}/user/change-password`, changePasswordData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        toast.success(res.data.message || "Password changed successfully");
+        setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "" }));
+      } else {
+        toast.error(res.data.message || "Failed to change password");
+      }
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast.error(error.response?.data?.message || error.message || "Something went wrong");
+    } finally {
+      setChangePasswordLoading(false);
+    }
+  };
 
 
   return (
-    <div className="flex flex-col items-center p-6 sm:p-10 min-h-screen text-gray-200 w-full transition-all duration-300">
+    <div className="p-4 sm:p-8 min-h-screen transition-all duration-300 w-full animate-in fade-in duration-700">
+      <div className="space-y-8 w-full max-w-4xl mx-auto">
 
-      {/* Delete Account Modal */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="bg-[#2a131b] border border-[#4d282e] rounded-xl shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-red-400">Delete Account</DialogTitle>
-            <DialogDescription className="text-red-200 mt-1">
-              Deleting your account will remove all content associated with it, including Paid Courses.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex justify-end gap-4 mt-4">
-            <Button variant="outline" onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={() => { console.log("Account deleted"); setShowModal(false); }}>Confirm Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight mb-2">
+            Settings
+          </h1>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">
+            Customize your account and security preferences
+          </p>
+        </div>
 
-      {/* Confirm Password Modal for Save Changes */}
-      <Dialog open={showConfirmPasswordModal} onOpenChange={setShowConfirmPasswordModal}>
-        <DialogContent className="bg-[#1f2937] border border-zinc-700 rounded-xl shadow-xl text-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-purple-400">Confirm Password</DialogTitle>
-            <DialogDescription className="text-gray-300 mt-1">
-              Please enter your current password to save changes.
-            </DialogDescription>
-          </DialogHeader>
+        {/* Delete Account Modal */}
+        <Dialog open={showModal} onOpenChange={setShowModal}>
+          <DialogContent className="bg-[#050816] border border-red-500/20 rounded-[2.5rem] shadow-2xl p-10 max-w-md">
+            <DialogHeader>
+              <div className="w-16 h-16 bg-red-500/10 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                <Trash2 className="text-red-500 w-8 h-8" />
+              </div>
+              <DialogTitle className="text-2xl font-black text-white text-center">Are you absolutely sure?</DialogTitle>
+              <DialogDescription className="text-gray-400 text-center mt-3 text-base leading-relaxed">
+                Deleting your account will remove all content associated with it, including your certificates and paid courses. <span className="text-red-500 font-bold">This action is permanent.</span>
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex flex-col sm:flex-col gap-3 mt-8">
+              <Button
+                className="w-full h-12 rounded-xl bg-red-600 text-white font-black hover:bg-red-500 transition-all shadow-[0_10px_20px_rgba(220,38,38,0.2)]"
+                onClick={() => { setShowModal(false); }}
+              >
+                Delete Account
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowModal(false)}
+                className="w-full h-12 rounded-xl border-white/5 text-gray-400 font-bold hover:bg-white/5 hover:text-white transition-all"
+              >
+                Keep Account
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-          <div className="relative mt-4">
-            <Label htmlFor="confirmPassword">Current Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="bg-zinc-800 mt-2 border-zinc-600 text-white shadow-inner"
-            />
+        {/* Confirm Password Save Modal */}
+        <Dialog open={showConfirmPasswordModal} onOpenChange={setShowConfirmPasswordModal}>
+          <DialogContent className="bg-[#050816] border border-white/5 rounded-[2.5rem] shadow-2xl p-10 max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black text-white">Confirm Updates</DialogTitle>
+              <DialogDescription className="text-gray-400 mt-2 text-base">
+                Please enter your current password to authorize these changes to your profile.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 mt-6">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Current Password</Label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+                className="h-14 bg-white/2 border-white/10 rounded-2xl text-white placeholder:text-gray-700 focus:ring-purple-500"
+              />
+            </div>
+
+            <DialogFooter className="flex gap-4 mt-8">
+              <Button
+                variant="outline"
+                onClick={() => setShowConfirmPasswordModal(false)}
+                className="w-full h-12 rounded-xl border-white/5 text-gray-400"
+              >
+                Cancel
+              </Button>
+              <Button
+                className="w-full h-12 rounded-xl bg-purple-600 text-white font-black hover:bg-purple-500 transition-all shadow-[0_10px_20px_rgba(147,51,234,0.2)]"
+                onClick={handleSaveProfile}
+                disabled={!confirmPassword || profileSaving}
+              >
+                {profileSaving ? <Loader className="animate-spin h-5 w-5 mr-2" /> : null}
+                {profileSaving ? 'Saving...' : 'Save Profile'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* --- Profile Information --- */}
+        <div className="glass p-10 rounded-[2.5rem] border-white/5 space-y-10 group">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
+            <h2 className="text-xl font-black text-white">Profile Information</h2>
           </div>
 
-          <DialogFooter className="flex justify-end gap-4 mt-6">
-            <Button variant="outline" className="text-black" onClick={() => setShowConfirmPasswordModal(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg"
-              onClick={handleSaveProfile}
-              disabled={!confirmPassword || profileSaving}
-            >
-             {profileSaving && <Loader className="animate-spin h-5 w-5 text-white" />}
-            {profileSaving ? 'Saving...' : 'Confirm & Save'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <div className={`space-y-10 w-full ${collapsed ? "max-w-6xl" : "max-w-4xl"}`}>
-
-        {/* Profile Information */}
-        <div className="flex flex-col gap-8 p-8 rounded-xl border border-zinc-700 bg-gradient-to-r from-[#1f2937] to-[#111827] shadow-lg hover:shadow-2xl transition-shadow">
-          <p className="text-xl font-bold text-white text-center">Profile Information</p>
-
-          <div className="flex flex-col items-center gap-4">
-            {/* Avatar Preview */}
-            <Avatar className="w-24 h-24 ring-2 ring-purple-600">
-              <AvatarImage src={previewImage} alt={`${user?.firstname} ${user?.lastname}`} />
-              <AvatarFallback>
-                {`${user?.firstname?.[0]}${user?.lastname?.[0]}`}
-              </AvatarFallback>
-            </Avatar>
-
-            {/* Hidden File Input */}
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleImageChange}
-            />
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <Button
-                className="bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+          <div className="flex flex-col md:flex-row items-center gap-10">
+            <div className="relative group/avatar">
+              <Avatar className="w-32 h-32 rounded-[2.5rem] border-4 border-white/10 shadow-2xl transition-transform duration-500 group-hover/avatar:scale-105">
+                <AvatarImage src={previewImage} />
+                <AvatarFallback className="bg-blue-600 text-3xl font-black text-white">
+                  {user?.firstname?.[0]}{user?.lastname?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <button
                 onClick={() => fileInputRef.current?.click()}
+                className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-xl shadow-2xl flex items-center justify-center text-[#050816] hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
               >
-                <Upload size={18} />
-                Change Profile
-              </Button>
-              {previewImage !== "https://github.com/shadcn.png" && (
+                <Upload className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4 w-full md:w-auto">
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleImageChange}
+              />
+              <div className="flex flex-wrap gap-4">
                 <Button
-                  variant="destructive"
-                  className="flex items-center gap-2"
-                  onClick={handleRemoveImage}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="h-12 px-6 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all"
                 >
-                  <X size={18} />
-                  Remove
+                  Change Avatar
                 </Button>
-              )}
+                {previewImage !== "https://github.com/shadcn.png" && (
+                  <Button
+                    onClick={handleRemoveImage}
+                    variant="ghost"
+                    className="h-12 px-6 rounded-2xl text-red-400 hover:text-red-500 hover:bg-red-500/5"
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              <p className="text-gray-500 text-xs font-medium">JPG, PNG or GIF. Max 800KB.</p>
             </div>
           </div>
 
-          {/* First & Last Name Row */}
-          <div className="flex flex-wrap gap-6">
-            <div className="flex-1 min-w-[200px]">
-              <Label>First Name</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">First Name</Label>
               <Input
-                placeholder="First Name"
                 name="firstName"
                 value={formData.firstName}
                 onChange={handleInputChange}
-                className="bg-zinc-800 border-zinc-600 text-white shadow-inner"
+                className="h-14 bg-white/2 border-white/10 rounded-2xl text-white focus:ring-purple-500"
               />
             </div>
-
-            <div className="flex-1 min-w-[200px]">
-              <Label>Last Name</Label>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Last Name</Label>
               <Input
-                placeholder="Last Name"
                 name="lastName"
                 value={formData.lastName}
                 onChange={handleInputChange}
-                className="bg-zinc-800 border-zinc-600 text-white shadow-inner"
+                className="h-14 bg-white/2 border-white/10 rounded-2xl text-white focus:ring-purple-500"
               />
             </div>
-          </div>
-
-          {/* Profession & DOB Row */}
-          <div className="flex flex-wrap gap-6">
-            <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="profession">Profession</Label>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Profession</Label>
               <Select
                 value={formData.role}
                 onValueChange={(v) => setFormData((p) => ({ ...p, role: v }))}
               >
-                <SelectTrigger className="bg-zinc-800 border-zinc-600 text-white shadow-inner">
-                  <SelectValue placeholder="Select a profession" />
+                <SelectTrigger className="h-14 bg-white/2 border-white/10 rounded-2xl text-white">
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-800 text-white">
+                <SelectContent className="bg-[#050816] border-white/10 text-white rounded-xl">
                   {["student", "instructor"].map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
+                    <SelectItem key={role} value={role} className="capitalize">{role}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="dob">Date of Birth</Label>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Date of Birth</Label>
               <Input
                 type="date"
-                id="dob"
                 name="dob"
                 value={formData.dob}
                 onChange={handleInputChange}
-                className="bg-zinc-800 border-zinc-600 text-white shadow-inner"
+                className="h-14 bg-white/2 border-white/10 rounded-2xl text-white focus:ring-purple-500"
               />
             </div>
-          </div>
-
-          {/* Phone & Gender Row */}
-          <div className="flex flex-wrap gap-6">
-            <div className="flex-1 min-w-[200px]">
-              <Label htmlFor="contactNo">Phone Number</Label>
-              <div className="flex items-center gap-2">
-                <span className="text-white text-sm border border-zinc-700 bg-zinc-800 p-3 rounded-md shadow-inner">
-                  +91
-                </span>
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Phone Number</Label>
+              <div className="flex gap-2">
+                <div className="h-14 px-4 bg-white/2 border border-white/10 rounded-2xl flex items-center text-gray-500 font-bold">+91</div>
                 <Input
-                  type="tel"
-                  id="contactNo"
                   name="contactNo"
                   value={formData.contactNo}
                   onChange={handleInputChange}
-                  placeholder="Phone number"
-                  className="bg-zinc-800 border-zinc-600 text-white shadow-inner"
+                  className="flex-1 h-14 bg-white/2 border-white/10 rounded-2xl text-white focus:ring-purple-500"
                 />
               </div>
             </div>
-
-            <div className="flex-1 min-w-[200px]">
-              <Label>Gender</Label>
-              <div className="flex items-center gap-6 pt-1 flex-wrap">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Gender</Label>
+              <div className="h-14 flex items-center gap-6 px-6 bg-white/2 border border-white/10 rounded-2xl">
                 {["male", "female", "other"].map((g) => (
-                  <div key={g} className="flex items-center gap-2 text-white text-sm">
+                  <label key={g} className="flex items-center gap-2 cursor-pointer group/radio">
                     <input
                       type="radio"
                       name="gender"
@@ -343,120 +353,117 @@ const Settings = () => {
                       onChange={handleInputChange}
                       className="accent-purple-500 w-4 h-4"
                     />
-                    {g}
-                  </div>
+                    <span className="text-sm font-bold text-gray-400 group-hover/radio:text-white transition-colors capitalize">{g}</span>
+                  </label>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* About Section */}
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="about">About</Label>
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Bio / About</Label>
             <Textarea
-              id="about"
               name="about"
               value={formData.about}
               onChange={(e) => setFormData((prev) => ({ ...prev, about: e.target.value }))}
-              placeholder="Enter Bio Details"
-              className="h-28 bg-zinc-800 border-zinc-600 text-white shadow-inner resize-none"
+              placeholder="Tell others about yourself..."
+              className="min-h-[120px] bg-white/2 border-white/10 rounded-2xl text-white placeholder:text-gray-700 focus:ring-purple-500 p-6"
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row justify-end gap-4 mt-6">
+          <div className="flex justify-end gap-4 pt-4">
             <Button
-              variant="outline"
-              className="shadow-md hover:shadow-lg text-gray-400"
-              onClick={() => console.log("Cancel clicked")}
+
+              className="h-14 px-8 bg-gray-700 hover:bg-gray-600 rounded-2xl text-gray-200 font-bold hover:text-white"
+              onClick={() => navigate('/dashboard/my-profile')}
             >
               Cancel
             </Button>
             <Button
-              className="bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transition-all"
+              className="h-14 px-10 rounded-2xl bg-purple-600 text-white font-black hover:bg-purple-500 transition-all shadow-[0_10px_20px_rgba(147,51,234,0.2)]"
               onClick={() => setShowConfirmPasswordModal(true)}
             >
-              Save Changes
+              Update Profile
             </Button>
           </div>
         </div>
 
-        {/* Password Section */}
-        <div className="flex flex-col gap-6 p-8 rounded-xl border border-zinc-700 bg-gradient-to-r from-[#1f2937] to-[#111827] shadow-lg hover:shadow-2xl transition-shadow">
-          <p className="text-xl font-bold text-white">Change Password</p>
-
-          <div className="flex flex-col gap-4">
-
-            {/* Current Password */}
-            <div className="relative sm:w-[50%] w-full">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input
-                type={showCurrentPassword ? "text" : "password"}
-                id="currentPassword"
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleInputChange}
-                placeholder="Enter Current Password"
-                className="bg-zinc-800 mt-2 border-zinc-600 text-white shadow-inner pr-10"
-              />
-              <span
-                className="absolute right-2 top-10 -translate-y-1/2 p-1 cursor-pointer"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-              >
-                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </span>
-            </div>
-
-            {/* New Password */}
-            <div className="relative sm:w-[50%] w-full">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input
-                type={showNewPassword ? "text" : "password"}
-                id="newPassword"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleInputChange}
-                placeholder="Enter New Password"
-                className="bg-zinc-800 mt-2 border-zinc-600 text-white shadow-inner pr-10"
-              />
-              <span
-                className="absolute right-2 top-10 -translate-y-1/2 p-1 cursor-pointer"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-              >
-                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </span>
-            </div>
-
-            {/* Change Password Button */}
-            <Button
-              className="self-start bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transition-all mt-2"
-              onClick={handleChangePassword}
-              disabled={changePasswordLoading}
-            >
-               {changePasswordLoading && <Loader className="animate-spin h-5 w-5 text-white" />}
-             {changePasswordLoading ? 'Changing...' : 'Change Password'}
-            </Button>
+        {/* --- Change Password --- */}
+        <div className="glass p-10 rounded-[2.5rem] border-white/5 space-y-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-purple-500 rounded-full" />
+            <h2 className="text-xl font-black text-white">Change Password</h2>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+            <div className="space-y-2 relative">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">Current Password</Label>
+              <div className="relative">
+                <Input
+                  type={showCurrentPassword ? "text" : "password"}
+                  name="currentPassword"
+                  value={formData.currentPassword}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  className="h-14 bg-white/2 border-white/10 rounded-2xl text-white pr-12 focus:ring-purple-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                >
+                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2 relative">
+              <Label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-1">New Password</Label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  name="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleInputChange}
+                  placeholder="••••••••"
+                  className="h-14 bg-white/2 border-white/10 rounded-2xl text-white pr-12 focus:ring-purple-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white transition-colors"
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <Button
+            className="h-14 px-10 rounded-2xl bg-white text-[#050816] font-black hover:bg-purple-600 hover:text-white transition-all shadow-xl"
+            onClick={handleChangePassword}
+            disabled={changePasswordLoading}
+          >
+            {changePasswordLoading ? <Loader className="animate-spin h-5 w-5 mr-2" /> : null}
+            {changePasswordLoading ? 'Applying...' : 'Apply New Password'}
+          </Button>
         </div>
 
-        {/* Delete Account */}
-        <div className="flex flex-col gap-5 p-6 sm:p-8 rounded-xl border border-red-800 bg-red-950 shadow-lg hover:shadow-2xl transition-shadow">
-          <div className="flex flex-col sm:flex-row items-center gap-3 ">
-            <div className="w-[60px] h-[60px] bg-red-700 rounded-full flex items-center justify-center">
-              <Trash2 className="text-red-200 mt-1 " />
+        {/* --- DANGER ZONE --- */}
+        <div className="p-10 rounded-[2.5rem] border border-red-500/20 bg-red-500/5 space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-red-600/20 rounded-2xl flex items-center justify-center text-red-500 shadow-inner">
+              <Trash2 className="w-6 h-6" />
             </div>
-            <div className="space-y-1">
-              <p className="text-lg font-bold text-red-300">Delete Account</p>
-              <p className="text-sm text-red-200">
-                This account contains Paid Courses. Deleting your account will remove all associated content.
-              </p>
+            <div>
+              <h2 className="text-xl font-black text-red-500">Delete Account</h2>
+              <p className="text-red-900/60 font-medium text-sm">Once you delete your account, there is no going back. Please be certain.</p>
             </div>
           </div>
           <Button
-            className="text-red-100 self-start bg-red-700 px-3 py-1 hover:bg-red-800 cursor-pointer"
             onClick={() => setShowModal(true)}
+            className="h-12 px-6 rounded-xl bg-red-600/10 border border-red-600/20 text-red-500 font-bold hover:bg-red-600 hover:text-white transition-all"
           >
-            Delete Now
+            Permanently Delete My Account
           </Button>
         </div>
 
